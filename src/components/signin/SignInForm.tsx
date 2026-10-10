@@ -1,4 +1,4 @@
-import { Apple, Google, PersonOutlined } from "@mui/icons-material";
+import { Apple, Google, MailOutlined } from "@mui/icons-material";
 import { Button, Divider, Grid, InputAdornment, InputLabel, Link, Typography } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import { useForm } from "react-hook-form";
@@ -7,7 +7,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { signIn } from "../../services/authenticationService";
 
 type SignInFormValues = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -19,6 +19,7 @@ const SignInForm = () => {
     <form onSubmit={handleSubmit((data) => {
       signIn(data)
     })}
+      noValidate
       style={{
         width: "100%"
       }}
@@ -29,23 +30,27 @@ const SignInForm = () => {
           <Typography sx={{ fontSize: 18 }}>Sign in to continue your journey</Typography>
         </Grid>
         <Grid size={12} sx={{ mb: 4 }}>
-          <InputLabel htmlFor="signin-username" sx={{ fontWeight: "bold", mb: 1 }}>Username</InputLabel>
-          <TextField id="signin-username" variant="outlined"
+          <InputLabel htmlFor="signin-email" sx={{ fontWeight: "bold", mb: 1 }}>Email address</InputLabel>
+          <TextField id="signin-email" variant="outlined" type="email"
             autoComplete="username"
-            placeholder="Enter your username"
+            placeholder="Enter your email"
             sx={{
               width: "100%"
             }}
-            helperText={errors.username?.message}
-            error={!!errors.username}
-            {...register("username", {
-              required: "Username is required",
+            helperText={errors.email?.message}
+            error={!!errors.email}
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+                message: "Enter a valid email address",
+              },
             })}
             slotProps={{
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <PersonOutlined />
+                    <MailOutlined />
                   </InputAdornment>
                 ),
               },

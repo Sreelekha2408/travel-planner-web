@@ -1,13 +1,12 @@
 import { API_BASE_URL, fetchWrapper } from "./serviceWrapper";
 
-// Matches UserLoginRequest in the Spring Boot API.
+// Frontend-defined contract; the Java backend will implement it.
 export type LoginRequest = {
-  username: string;
+  email: string;
   password: string;
 };
 
-// The API responds with the JWT as plain text. On bad credentials it currently
-// returns 200 with an empty body, which parses to undefined.
+// Placeholder: Phase 2 replaces this with the cookie-based auth contract.
 export async function signIn(credentials: LoginRequest) {
   return fetchWrapper<string | undefined>(() =>
     fetch(`${API_BASE_URL}/users/login`, {
