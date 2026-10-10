@@ -10,6 +10,8 @@ import NotFound from './components/NotFound';
 import AppLayout from './components/layout/AppLayout';
 import ComingSoon from './components/layout/ComingSoon';
 import TripsPage from './components/trips/TripsPage';
+import TripFormPage from './components/trips/TripFormPage';
+import TripDetailPage from './components/trips/TripDetailPage';
 import { AuthProvider } from './context/AuthContext';
 import { queryClient } from './services/queryClient';
 
@@ -27,6 +29,9 @@ function App() {
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/trips" element={<TripsPage />} />
+                  <Route path="/trips/new" element={<TripFormPage />} />
+                  <Route path="/trips/:tripId" element={<TripDetailPage />} />
+                  <Route path="/trips/:tripId/edit" element={<TripFormPage />} />
                   <Route path="/itinerary" element={<ComingSoon title="Itinerary" />} />
                   <Route path="/expenses" element={<ComingSoon title="Expenses" />} />
                   <Route path="/packing" element={<ComingSoon title="Packing list" />} />
