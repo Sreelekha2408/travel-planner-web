@@ -15,6 +15,8 @@ type SignInFormValues = {
 function getSignInErrorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) return "Can't reach the server. Check your connection and try again.";
   if (error.status === 401) return "Invalid email or password.";
+  // Missing or stale CSRF token (e.g. cookies were cleared); a reload gets a fresh one.
+  if (error.status === 403) return "Your session has expired. Refresh the page and try again.";
   if (error.status >= 500) return "Something went wrong on our side. Please try again.";
   return error.message;
 }
