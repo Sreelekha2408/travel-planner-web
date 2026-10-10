@@ -1,0 +1,45 @@
+import { apiFetch } from "./serviceWrapper";
+
+// Mirrors TripResponse in travel-planner-api. Dates are ISO strings (yyyy-MM-dd),
+// which is how Jackson serialises java.time.LocalDate.
+export type Trip = {
+  tripId: number;
+  title: string;
+  source: string | null;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number | null;
+  createdBy: string | null;
+  createdOn: string | null;
+};
+
+// Mirrors TripRequest.
+export type TripInput = {
+  title: string;
+  source: string | null;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number | null;
+};
+
+export function getTrips() {
+  return apiFetch<Trip[]>("/trip/list");
+}
+
+export function getTrip(tripId: number) {
+  return apiFetch<Trip>(`/trip/${tripId}`);
+}
+
+export function createTrip(input: TripInput) {
+  return apiFetch<Trip>("/trip/create", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateTrip(tripId: number, input: TripInput) {
+  return apiFetch<Trip>(`/trip/${tripId}`, { method: "PUT", body: JSON.stringify(input) });
+}
+
+export function deleteTrip(tripId: number) {
+  return apiFetch<void>(`/trip/${tripId}`, { method: "DELETE" });
+}

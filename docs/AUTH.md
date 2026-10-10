@@ -88,12 +88,9 @@ server just checks that header == cookie.
 
 ## 3. Backend changes in travel-planner-api
 
-The backend changes are in `travel-planner-api` in two forms:
-
-- **Uncommitted on `main`**, for review in IntelliJ → Commit tool window → *Changes*
-  (double-click a file to open the diff).
-- **As 5 small commits on the `cookie-auth-commits` branch**, one idea each (table below).
-  View one with `git show <hash>`, or open the branch in IntelliJ → *Git → Log*.
+The backend changes are 5 small commits on `main` in `travel-planner-api`, one idea each.
+View them in IntelliJ → *Git → Log* (click a commit to see its files and diffs), or with
+`git show <hash>`.
 
 | Commit | What and why | Files |
 | ------ | ------------ | ----- |
@@ -136,7 +133,7 @@ and ask the server who is logged in.
 | [`src/components/routing/ProtectedRoute.tsx`](../src/components/routing/ProtectedRoute.tsx) | Spinner while loading, otherwise render the page or redirect to `/signin` |
 | [`src/components/signin/SignInForm.tsx`](../src/components/signin/SignInForm.tsx) | Awaits `signIn`; shows 401/403/5xx/network errors |
 | [`vite.config.ts`](../vite.config.ts) | Dev proxy `/api/*` → `http://localhost:8080`, so the browser only talks to its own origin |
-| [`mock-api/authMock.ts`](../mock-api/authMock.ts) | `npm run dev:mock`: dev-only stand-in for the three endpoints, with real HttpOnly cookies |
+| [`mock-api/mockApi.ts`](../mock-api/mockApi.ts) | `npm run dev:mock`: dev-only stand-in for the auth endpoints (real HttpOnly cookies) and trips |
 
 The two lines that matter most, in `apiFetch`:
 
@@ -184,7 +181,7 @@ a cross-origin call.
 ## 6. How to verify it in the browser
 
 1. Run the backend, then `npm run dev` (or `npm run dev:mock` without a backend; the test
-   account is in `mock-api/authMock.ts`).
+   account is in `mock-api/mockApi.ts`).
 2. DevTools → **Application → Cookies → http://localhost:5173**. After signing in you'll see
    `access_token` with the **HttpOnly** box ticked, and `XSRF-TOKEN` without it.
 3. Console: `document.cookie` shows `XSRF-TOKEN=…` but **not** `access_token`.
