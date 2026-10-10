@@ -12,7 +12,6 @@ const SignInForm = () => {
 
   return (
     <form onSubmit={handleSubmit((data) => {
-      console.log(JSON.stringify(data));
       signIn(data)
     })}
       style={{
