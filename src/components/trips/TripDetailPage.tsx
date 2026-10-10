@@ -3,7 +3,7 @@ import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { colors } from "../../common/theme";
-import { formatBudget, formatDateRange, getTripStatus, tripLengthInDays } from "../../common/tripUtils";
+import { formatBudget, formatDateRange, formatTravellers, getTripStatus, tripLengthInDays, tripTypeLabel } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import { useTrip } from "../../services/tripQueries";
 import type { Trip } from "../../services/tripService";
@@ -48,6 +48,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
           <Typography component="h1" sx={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.01em" }}>{trip.title}</Typography>
           <Typography sx={{ fontSize: 14, opacity: 0.9 }}>
             {formatDateRange(trip.startDate, trip.endDate)} · {days} {days === 1 ? "day" : "days"}
+            {trip.travellers != null && ` · ${formatTravellers(trip.travellers)}`}
           </Typography>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             <Chip label={trip.destination} size="small" sx={headerBadgeSx} />
@@ -79,7 +80,30 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
         <DetailRow label="Dates" value={formatDateRange(trip.startDate, trip.endDate)} />
         <DetailRow label="Length" value={`${days} ${days === 1 ? "day" : "days"}`} />
         <DetailRow label="Budget" value={formatBudget(trip.budget)} />
+        <DetailRow label="Travellers" value={formatTravellers(trip.travellers) ?? "Not set"} />
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, py: 1.25 }}>
+          <Typography sx={{ fontSize: 14, color: colors.textMuted }}>Trip type</Typography>
+          {trip.tripTypes.length > 0 ? (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "flex-end" }}>
+              {trip.tripTypes.map((type) => <Chip key={type} label={tripTypeLabel(type)} size="small" />)}
+            </Box>
+          ) : (
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Not set</Typography>
+          )}
+        </Box>
       </Box>
+
+      {trip.invitedEmails.length > 0 && (
+        <Box sx={{ bgcolor: colors.surface, borderRadius: 4, boxShadow: colors.cardShadow, p: 2.75, maxWidth: 560 }}>
+          <Typography component="h2" sx={{ fontSize: 14, fontWeight: 700, mb: 0.5 }}>Invited travellers</Typography>
+          <Typography sx={{ fontSize: 13, color: colors.textMuted, mb: 1.5 }}>
+            Saved with the trip. Invites aren't sent yet: that comes with Shared trips.
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {trip.invitedEmails.map((email) => <Chip key={email} label={email} variant="outlined" />)}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };

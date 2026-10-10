@@ -5,7 +5,7 @@ import MoreHoriz from "@mui/icons-material/MoreHoriz";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { colors } from "../../common/theme";
-import { destinationCode, formatBudget, formatDateRange, getTripStatus, tripLengthInDays } from "../../common/tripUtils";
+import { destinationCode, formatBudget, formatDateRange, formatTravellers, getTripStatus } from "../../common/tripUtils";
 import type { Trip } from "../../services/tripService";
 import TripStatusChip from "./TripStatusChip";
 
@@ -24,7 +24,7 @@ type TripCardProps = {
 
 const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const days = tripLengthInDays(trip.startDate, trip.endDate);
+  const travellers = formatTravellers(trip.travellers);
 
   const closeMenu = () => setMenuAnchor(null);
 
@@ -49,7 +49,7 @@ const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
           <Typography noWrap sx={{ fontSize: 13, color: colors.textMuted, mt: 0.25 }}>{trip.destination}</Typography>
           <Typography component="div" sx={{ display: "flex", flexWrap: "wrap", columnGap: 1.75, rowGap: 0.5, mt: 1.25, fontSize: 12, color: colors.navText }}>
             <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
-            <span>{days} {days === 1 ? "day" : "days"}</span>
+            {travellers && <span>{travellers}</span>}
             <span>{formatBudget(trip.budget)}</span>
           </Typography>
         </Box>

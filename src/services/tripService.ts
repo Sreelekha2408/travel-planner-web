@@ -1,5 +1,8 @@
 import { apiFetch } from "./serviceWrapper";
 
+// Mirrors the TripType enum in travel-planner-api.
+export type TripType = "RELAXING" | "ADVENTURE" | "CULTURE" | "FOOD_AND_DRINK" | "BEACH" | "CITY_BREAK" | "NATURE";
+
 // Mirrors TripResponse in travel-planner-api. Dates are ISO strings (yyyy-MM-dd),
 // which is how Jackson serialises java.time.LocalDate.
 export type Trip = {
@@ -10,6 +13,9 @@ export type Trip = {
   startDate: string;
   endDate: string;
   budget: number | null;
+  travellers: number | null;
+  tripTypes: TripType[];
+  invitedEmails: string[]; // saved only; sending invites comes with Shared trips
   createdBy: string | null;
   createdOn: string | null;
 };
@@ -22,6 +28,9 @@ export type TripInput = {
   startDate: string;
   endDate: string;
   budget: number | null;
+  travellers: number | null;
+  tripTypes: TripType[];
+  invitedEmails: string[];
 };
 
 export function getTrips() {

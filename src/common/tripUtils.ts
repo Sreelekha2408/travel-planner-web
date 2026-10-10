@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import type { Trip } from "../services/tripService";
+import type { Trip, TripType } from "../services/tripService";
 
 export type TripStatus = "upcoming" | "ongoing" | "completed";
 
@@ -40,6 +40,31 @@ export function sortTrips(trips: Trip[]): Trip[] {
     return statusA === "completed" ? b.startDate.localeCompare(a.startDate) : a.startDate.localeCompare(b.startDate);
   });
 }
+
+// Chip labels for the "What kind of trip is it?" field, in the design's order.
+export const tripTypeOptions: { value: TripType; label: string }[] = [
+  { value: "RELAXING", label: "Relaxing" },
+  { value: "ADVENTURE", label: "Adventure" },
+  { value: "CULTURE", label: "Culture" },
+  { value: "FOOD_AND_DRINK", label: "Food and drink" },
+  { value: "BEACH", label: "Beach" },
+  { value: "CITY_BREAK", label: "City break" },
+  { value: "NATURE", label: "Nature" },
+];
+
+export function tripTypeLabel(type: TripType): string {
+  return tripTypeOptions.find((option) => option.value === type)?.label ?? type;
+}
+
+// 1 -> "Just me", 2 -> "2 travellers", 5 -> "5 or more travellers".
+export function formatTravellers(travellers: number | null): string | null {
+  if (travellers == null) return null;
+  if (travellers === 1) return "Just me";
+  if (travellers >= 5) return "5 or more travellers";
+  return `${travellers} travellers`;
+}
+
+export const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 // Big faded letters on the card cover, e.g. "Bali, Indonesia" -> "BAL".
 export function destinationCode(destination: string): string {
