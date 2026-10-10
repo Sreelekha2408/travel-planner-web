@@ -1,50 +1,26 @@
-import { Box, Button, Drawer, List, ListItem, ListItemButton, ListItemText, Typography } from "@mui/material";
-import LogoutIcon from "@mui/icons-material/Logout";
+import { Box, Button, Typography } from "@mui/material";
+import AddRounded from "@mui/icons-material/AddRounded";
+import { Link as RouterLink } from "react-router-dom";
+import { colors } from "../../common/theme";
 import { useAuth } from "../../context/useAuth";
-
-const drawerWidth = 240;
 
 const Dashboard = () => {
   const auth = useAuth();
-  // Rendered inside ProtectedRoute, so this is always "authenticated" in practice.
-  const userName = auth.status === "authenticated" ? `${auth.user.firstName} ${auth.user.lastName}` : "";
+  const firstName = auth.status === "authenticated" ? auth.user.firstName : "";
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <Drawer
-        anchor="left"
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-            bgcolor: "yellow",
-          },
-        }}
-      >
-        <Typography variant="h3">TravelPlan</Typography>
-        <Typography>Menu</Typography>
-        <List>
-          {['Dashboard', 'My Trips', 'Itinerary', 'Expenses', 'Packing List', 'Shared Trips'].map((text) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <Box sx={{ mt: "auto", p: 2 }}>
-          <Typography sx={{ fontWeight: "bold", mb: 1 }}>{userName}</Typography>
-          <Button variant="outlined" startIcon={<LogoutIcon />} onClick={() => auth.signOut()} fullWidth>
-            Sign out
-          </Button>
-        </Box>
-      </Drawer>
-      <Box component="main" sx={{ flexGrow: 1 }}>
-        <h1>Cards</h1>
+    <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+      <Box>
+        <Typography component="h1" sx={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.01em" }}>
+          Welcome back, {firstName}
+        </Typography>
+        <Typography sx={{ fontSize: 14, color: colors.textMuted, mt: 0.5 }}>
+          Here's what's happening with your trips.
+        </Typography>
       </Box>
+      <Button component={RouterLink} to="/trips/new" variant="contained" startIcon={<AddRounded />}>
+        New trip
+      </Button>
     </Box>
   );
 };

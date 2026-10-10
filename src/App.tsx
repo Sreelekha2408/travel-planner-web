@@ -7,6 +7,8 @@ import { SignIn } from './components/signin/SignIn'
 import Dashboard from './components/dashboard/Dashboard';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import NotFound from './components/NotFound';
+import AppLayout from './components/layout/AppLayout';
+import ComingSoon from './components/layout/ComingSoon';
 import { AuthProvider } from './context/AuthContext';
 import { queryClient } from './services/queryClient';
 
@@ -21,7 +23,13 @@ function App() {
             <Routes>
               <Route path="/signin" element={<SignIn />} />
               <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route element={<AppLayout />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/itinerary" element={<ComingSoon title="Itinerary" />} />
+                  <Route path="/expenses" element={<ComingSoon title="Expenses" />} />
+                  <Route path="/packing" element={<ComingSoon title="Packing list" />} />
+                  <Route path="/shared" element={<ComingSoon title="Shared trips" />} />
+                </Route>
               </Route>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<NotFound />} />
