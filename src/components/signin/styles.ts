@@ -1,0 +1,38 @@
+export const loginStyles = {
+  container: {
+    height: "100%",
+  },
+  imgContainer: {
+    objectFit: "cover" as any,
+    display: "block",
+    height: "100%",
+    width: "100%",
+  },
+  paperStyle: {
+    backgroundColor: "#fff",
+    borderRadius: "16px",
+    marginLeft: "auto",
+    marginRight: "auto",
+    marginTop: "48px",
+    marginBottom: "48px",
+    width: "60%",
+    height: "calc(100vh - 96px)",
+    overflow: "hidden",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+  },
+  loginContainer: {
+    backgroundColor: "#ffffff",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    padding: "48px",
+    boxSizing: "border-box" as const,
+    borderRadius: "16px",
+    boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.15)",
+    marginLeft: "-32px",
+    position: "relative" as const,
+    zIndex: 1,
+  },
+};
