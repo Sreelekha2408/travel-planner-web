@@ -1,3 +1,7 @@
+// "/api" is proxied to Spring Boot by the Vite dev server. `||` (not `??`) so an
+// empty VITE_API_URL also falls back.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+
 export class ApiError extends Error {
   readonly status: number;
 
