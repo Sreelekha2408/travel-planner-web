@@ -88,8 +88,12 @@ server just checks that header == cookie.
 
 ## 3. Backend changes in travel-planner-api
 
-The backend changes are 5 small commits in `travel-planner-api`, one idea each, so each
-diff is easy to read. View one with `git show <hash>`, or all of them with `git log -p`.
+The backend changes are in `travel-planner-api` in two forms:
+
+- **Uncommitted on `main`**, for review in IntelliJ → Commit tool window → *Changes*
+  (double-click a file to open the diff).
+- **As 5 small commits on the `cookie-auth-commits` branch**, one idea each (table below).
+  View one with `git show <hash>`, or open the branch in IntelliJ → *Git → Log*.
 
 | Commit | What and why | Files |
 | ------ | ------------ | ----- |
@@ -99,11 +103,6 @@ diff is easy to read. View one with `git show <hash>`, or all of them with `git 
 | `76c0ffd` | **The cookie.** Login sets an HttpOnly cookie; the filter reads it; new `/me` and `/logout` | `jwt/AuthCookies.java` (new), `jwt/JwtFilter.java`, `controller/UserController.java`, `service/UserService.java`, `config/SecurityConfig.java`, `application.properties` |
 | `3767be0` | **CSRF on.** Readable `XSRF-TOKEN` cookie + SPA handler; no token rotation | `config/SpaCsrfTokenRequestHandler.java` (new), `config/SecurityConfig.java` |
 
-```bash
-cd ~/Study/Personal\ projects/travel-planner-api
-git log --oneline
-git show 76c0ffd        # the cookie commit
-```
 
 > **Why services don't change:** users are *looked up* by email, but
 > `UserPrincipal.getUsername()` still returns the username, so every
