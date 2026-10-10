@@ -2,7 +2,7 @@ import { Apple, Google, PersonOutlined } from "@mui/icons-material";
 import { Button, Divider, Grid, InputAdornment, InputLabel, Link, Typography } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import { useForm } from "react-hook-form";
-import LogoutIcon from '@mui/icons-material/Logout';
+import LoginIcon from '@mui/icons-material/Login';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { signIn } from "../../services/authenticationService";
 
@@ -25,12 +25,13 @@ const SignInForm = () => {
     >
       <Grid container>
         <Grid size={12} sx={{ mb: 8 }}>
-          <Typography sx={{ fontSize: 42, fontWeight: "bold" }}>Welcome back!</Typography>
+          <Typography component="h1" sx={{ fontSize: 42, fontWeight: "bold" }}>Welcome back!</Typography>
           <Typography sx={{ fontSize: 18 }}>Sign in to continue your journey</Typography>
         </Grid>
         <Grid size={12} sx={{ mb: 4 }}>
-          <InputLabel sx={{ fontWeight: "bold", mb: 1 }}>Username</InputLabel>
-          <TextField id="outlined-basic" label="" variant="outlined"
+          <InputLabel htmlFor="signin-username" sx={{ fontWeight: "bold", mb: 1 }}>Username</InputLabel>
+          <TextField id="signin-username" variant="outlined"
+            autoComplete="username"
             placeholder="Enter your username"
             sx={{
               width: "100%"
@@ -52,8 +53,9 @@ const SignInForm = () => {
           />
         </Grid>
         <Grid size={12} sx={{ mb: 1.5 }}>
-          <InputLabel sx={{ fontWeight: "bold", mb: 1 }}>Password</InputLabel>
-          <TextField id="outlined-basic" label="" variant="outlined" type="password"
+          <InputLabel htmlFor="signin-password" sx={{ fontWeight: "bold", mb: 1 }}>Password</InputLabel>
+          <TextField id="signin-password" variant="outlined" type="password"
+            autoComplete="current-password"
             placeholder="Enter your password"
             sx={{
               width: "100%"
@@ -79,18 +81,17 @@ const SignInForm = () => {
           />
         </Grid>
         <Grid size={12} sx={{ mb: 4, display: "flex", justifyContent: "flex-end" }}>
-          <Link underline="none" sx={{ fontFamily: "Roboto, Helvetica, Arial, sans- serif" }}>Forgot password?</Link>
+          <Link underline="none" sx={{ fontFamily: "Roboto, Helvetica, Arial, sans-serif" }}>Forgot password?</Link>
         </Grid>
         <Grid size={12}>
           <Button type="submit" variant="contained" color="primary" size="medium"
-            startIcon={<LogoutIcon />}
-
+            startIcon={<LoginIcon />}
             sx={{ width: "100%", padding: "12px 6px" }}
-          > Sign in</Button>
+          >Sign in</Button>
         </Grid>
         <Grid size={12} sx={{ mt: 4, display: "flex", flexDirection: "column", gap: "12px" }}>
           <Divider sx={{
-            fontFamily: "Roboto, Helvetica, Arial, sans- serif",
+            fontFamily: "Roboto, Helvetica, Arial, sans-serif",
             "&::before, &::after": {
               borderTopWidth: "2px"
             },
@@ -98,18 +99,16 @@ const SignInForm = () => {
             fontSize: "18px",
             mb: 2
 
-          }}> or continue with</Divider>
+          }}>or continue with</Divider>
           <Button variant="outlined" size="medium"
             startIcon={<Google />}
-
             sx={{ width: "100%", padding: "12px 6px" }}
-          > Continue with Google</Button>
+          >Continue with Google</Button>
 
           <Button variant="outlined" size="medium"
             startIcon={<Apple />}
-
             sx={{ width: "100%", padding: "12px 6px" }}
-          > Continue with Apple</Button>
+          >Continue with Apple</Button>
         </Grid>
       </Grid>
     </form>
