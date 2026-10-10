@@ -1,24 +1,40 @@
-import { Apple, Google, MailOutlined } from "@mui/icons-material";
-import { Button, Divider, Grid, InputAdornment, InputLabel, Link, Typography } from "@mui/material";
+import { MailOutlined } from "@mui/icons-material";
+import { Alert, Button, Grid, InputAdornment, InputLabel, Typography } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import { useForm } from "react-hook-form";
 import LoginIcon from '@mui/icons-material/Login';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { signIn } from "../../services/authenticationService";
+import { useAuth } from "../../context/useAuth";
+import { ApiError } from "../../services/serviceWrapper";
 
 type SignInFormValues = {
   email: string;
   password: string;
 };
 
-const SignInForm = () => {
+function getSignInErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) return "Can't reach the server. Check your connection and try again.";
+  if (error.status === 401) return "Invalid email or password.";
+  if (error.status >= 500) return "Something went wrong on our side. Please try again.";
+  return error.message;
+}
 
-  const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>();
+const SignInForm = () => {
+  const { signIn } = useAuth();
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<SignInFormValues>();
+
+  // isSubmitting stays true while this promise is pending. On success the auth status
+  // changes and the SignIn page redirects, so there is no navigate() call here.
+  const onSubmit = async (values: SignInFormValues) => {
+    try {
+      await signIn(values);
+    } catch (error) {
+      setError("root.serverError", { message: getSignInErrorMessage(error) });
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit((data) => {
-      signIn(data)
-    })}
+    <form onSubmit={handleSubmit(onSubmit)}
       noValidate
       style={{
         width: "100%"
@@ -29,6 +45,11 @@ const SignInForm = () => {
           <Typography component="h1" sx={{ fontSize: 42, fontWeight: "bold" }}>Welcome back!</Typography>
           <Typography sx={{ fontSize: 18 }}>Sign in to continue your journey</Typography>
         </Grid>
+        {errors.root?.serverError && (
+          <Grid size={12} sx={{ mb: 3 }}>
+            <Alert severity="error">{errors.root.serverError.message}</Alert>
+          </Grid>
+        )}
         <Grid size={12} sx={{ mb: 4 }}>
           <InputLabel htmlFor="signin-email" sx={{ fontWeight: "bold", mb: 1 }}>Email address</InputLabel>
           <TextField id="signin-email" variant="outlined" type="email"
@@ -57,7 +78,7 @@ const SignInForm = () => {
             }}
           />
         </Grid>
-        <Grid size={12} sx={{ mb: 1.5 }}>
+        <Grid size={12} sx={{ mb: 4 }}>
           <InputLabel htmlFor="signin-password" sx={{ fontWeight: "bold", mb: 1 }}>Password</InputLabel>
           <TextField id="signin-password" variant="outlined" type="password"
             autoComplete="current-password"
@@ -85,35 +106,12 @@ const SignInForm = () => {
             }}
           />
         </Grid>
-        <Grid size={12} sx={{ mb: 4, display: "flex", justifyContent: "flex-end" }}>
-          <Link underline="none" sx={{ fontFamily: "Roboto, Helvetica, Arial, sans-serif" }}>Forgot password?</Link>
-        </Grid>
         <Grid size={12}>
           <Button type="submit" variant="contained" color="primary" size="medium"
             startIcon={<LoginIcon />}
+            disabled={isSubmitting}
             sx={{ width: "100%", padding: "12px 6px" }}
-          >Sign in</Button>
-        </Grid>
-        <Grid size={12} sx={{ mt: 4, display: "flex", flexDirection: "column", gap: "12px" }}>
-          <Divider sx={{
-            fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-            "&::before, &::after": {
-              borderTopWidth: "2px"
-            },
-            color: "GrayText",
-            fontSize: "18px",
-            mb: 2
-
-          }}>or continue with</Divider>
-          <Button variant="outlined" size="medium"
-            startIcon={<Google />}
-            sx={{ width: "100%", padding: "12px 6px" }}
-          >Continue with Google</Button>
-
-          <Button variant="outlined" size="medium"
-            startIcon={<Apple />}
-            sx={{ width: "100%", padding: "12px 6px" }}
-          >Continue with Apple</Button>
+          >{isSubmitting ? "Signing in…" : "Sign in"}</Button>
         </Grid>
       </Grid>
     </form>
