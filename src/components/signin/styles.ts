@@ -3,7 +3,7 @@ export const loginStyles = {
     height: "100%",
   },
   imgContainer: {
-    objectFit: "cover" as any,
+    objectFit: "cover" as const,
     display: "block",
     height: "100%",
     width: "100%",

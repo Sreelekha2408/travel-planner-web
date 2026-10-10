@@ -1,4 +1,4 @@
-import { Apple, Google, MailOutlined } from "@mui/icons-material";
+import { Apple, Google, PersonOutlined } from "@mui/icons-material";
 import { Button, Divider, Grid, InputAdornment, InputLabel, Link, Typography } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import { useForm } from "react-hook-form";
@@ -6,9 +6,14 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { signIn } from "../../services/authenticationService";
 
+type SignInFormValues = {
+  username: string;
+  password: string;
+};
+
 const SignInForm = () => {
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>();
 
   return (
     <form onSubmit={handleSubmit((data) => {
@@ -24,27 +29,22 @@ const SignInForm = () => {
           <Typography sx={{ fontSize: 18 }}>Sign in to continue your journey</Typography>
         </Grid>
         <Grid size={12} sx={{ mb: 4 }}>
-          <InputLabel sx={{ fontWeight: "bold", mb: 1 }}>Email address</InputLabel>
+          <InputLabel sx={{ fontWeight: "bold", mb: 1 }}>Username</InputLabel>
           <TextField id="outlined-basic" label="" variant="outlined"
-            placeholder="Enter your email"
+            placeholder="Enter your username"
             sx={{
               width: "100%"
             }}
-            helperText={errors.email?.message as string}
-            error={!!errors.email}
-            {...register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
-                message: "Enter a valid email address",
-              },
-
+            helperText={errors.username?.message}
+            error={!!errors.username}
+            {...register("username", {
+              required: "Username is required",
             })}
             slotProps={{
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <MailOutlined />
+                    <PersonOutlined />
                   </InputAdornment>
                 ),
               },
@@ -65,7 +65,7 @@ const SignInForm = () => {
                 message: "Password must be at least 6 characters",
               },
             })}
-            helperText={errors.password?.message as string}
+            helperText={errors.password?.message}
             error={!!errors.password}
             slotProps={{
               input: {
