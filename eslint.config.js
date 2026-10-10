@@ -19,4 +19,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Node-side code that runs inside the Vite dev server
+    files: ['vite.config.ts', 'mock-api/**/*.ts'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

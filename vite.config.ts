@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { authMock } from './mock-api/authMock'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  // `npm run dev:mock` (mode "mock") answers /api/auth/* locally instead of proxying.
+  plugins: [react(), mode === 'mock' && authMock()],
   server: {
     proxy: {
       // The Spring Boot API has no common prefix and owns /dashboard, which is also a
@@ -16,4 +18,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
