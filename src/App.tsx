@@ -9,6 +9,7 @@ import ProtectedRoute from './components/routing/ProtectedRoute';
 import NotFound from './components/NotFound';
 import AppLayout from './components/layout/AppLayout';
 import ComingSoon from './components/layout/ComingSoon';
+import TripsPage from './components/trips/TripsPage';
 import { AuthProvider } from './context/AuthContext';
 import { queryClient } from './services/queryClient';
 
@@ -25,6 +26,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/trips" element={<TripsPage />} />
                   <Route path="/itinerary" element={<ComingSoon title="Itinerary" />} />
                   <Route path="/expenses" element={<ComingSoon title="Expenses" />} />
                   <Route path="/packing" element={<ComingSoon title="Packing list" />} />
