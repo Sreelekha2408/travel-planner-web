@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import * as authService from "../services/authenticationService";
 import type { LoginRequest } from "../services/authenticationService";
+import { queryClient } from "../services/queryClient";
 import { setUnauthorizedHandler } from "../services/serviceWrapper";
 import { AuthContext, type AuthState } from "./useAuth";
 
@@ -39,7 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authService.signOut();
     } finally {
-      // Even if the request fails, don't leave the UI looking logged in.
+      // Even if the request fails, don't leave the UI looking logged in, and drop
+      // cached data (e.g. trips) so the next user can't see it.
+      queryClient.clear();
       setState({ status: "unauthenticated" });
     }
   }, []);
