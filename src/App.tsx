@@ -4,6 +4,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import './App.css'
 import { SignIn } from './components/signin/SignIn'
+import SignUp from './components/signup/SignUp';
 import Dashboard from './components/dashboard/Dashboard';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import NotFound from './components/NotFound';
@@ -25,6 +26,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />

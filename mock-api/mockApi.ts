@@ -15,13 +15,19 @@ const SESSION_SECONDS = 30 * 60;
 const REMEMBER_ME_SECONDS = 7 * 24 * 60 * 60; // "Keep me signed in"
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+type MockUser = { userId: number; username: string; email: string; firstName: string; lastName: string };
+
 // Test account for local development only.
-const DEMO_USER = { userId: 1, username: "demo", email: "demo@travelplan.test", firstName: "Demo", lastName: "Traveller" };
+const DEMO_USER: MockUser = { userId: 1, username: "demo", email: "demo@travelplan.test", firstName: "Demo", lastName: "Traveller" };
 const DEMO_PASSWORD = "password123";
 
-// session id -> expiry timestamp (ms). The real backend uses a signed JWT instead;
+// email -> account. Accounts created with /users/signup last until the dev server restarts.
+let nextUserId = 2;
+const users = new Map<string, { user: MockUser; password: string }>([[DEMO_USER.email, { user: DEMO_USER, password: DEMO_PASSWORD }]]);
+
+// session id -> who and until when. The real backend uses a signed JWT instead;
 // the browser and the frontend can't tell the difference.
-const sessions = new Map<string, number>();
+const sessions = new Map<string, { email: string; expiresAt: number }>();
 
 type MockTrip = {
   tripId: number;
@@ -85,9 +91,14 @@ function sessionCookie(value: string, maxAge: number) {
   return `${SESSION_COOKIE}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
 }
 
+function currentUser(cookies: Record<string, string>): MockUser | null {
+  const session = sessions.get(cookies[SESSION_COOKIE]);
+  if (!session || session.expiresAt <= Date.now()) return null;
+  return users.get(session.email)?.user ?? null;
+}
+
 function isLoggedIn(cookies: Record<string, string>) {
-  const expiresAt = sessions.get(cookies[SESSION_COOKIE]);
-  return expiresAt !== undefined && expiresAt > Date.now();
+  return currentUser(cookies) !== null;
 }
 
 async function handleRequest(req: IncomingMessage, res: ServerResponse) {
@@ -121,18 +132,36 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
   if (route === "POST /users/login") {
     const body = (await readJson(req)) as { email?: string; password?: string; rememberMe?: boolean } | undefined;
-    if (body?.email !== DEMO_USER.email || body?.password !== DEMO_PASSWORD) {
+    const account = body?.email ? users.get(body.email) : undefined;
+    if (!account || account.password !== body?.password) {
       return reply(401, { message: "Invalid email or password" });
     }
     const sessionId = randomUUID();
     const seconds = body?.rememberMe ? REMEMBER_ME_SECONDS : SESSION_SECONDS;
-    sessions.set(sessionId, Date.now() + seconds * 1000);
+    sessions.set(sessionId, { email: account.user.email, expiresAt: Date.now() + seconds * 1000 });
     setCookies.push(sessionCookie(sessionId, seconds));
-    return reply(200, DEMO_USER);
+    return reply(200, account.user);
+  }
+
+  if (route === "POST /users/signup") {
+    // Same rules as UserService.createUser in the backend.
+    const body = (await readJson(req)) as { firstName?: string; lastName?: string; email?: string; password?: string } | undefined;
+    if (!body?.firstName?.trim()) return reply(400, { message: "First name is required" });
+    if (!body.email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(body.email)) {
+      return reply(400, { message: "Enter a valid email address" });
+    }
+    if (!body.password || body.password.length < 8 || !/[A-Za-z]/.test(body.password) || !/\d/.test(body.password)) {
+      return reply(400, { message: "Use 8 or more characters with a mix of letters and numbers" });
+    }
+    if (users.has(body.email)) return reply(409, { message: "An account with this email already exists" });
+    const user: MockUser = { userId: nextUserId++, username: body.email, email: body.email, firstName: body.firstName, lastName: body.lastName ?? "" };
+    users.set(user.email, { user, password: body.password });
+    return reply(200, user);
   }
 
   if (route === "GET /users/me") {
-    return isLoggedIn(cookies) ? reply(200, DEMO_USER) : reply(401, { message: "Not authenticated" });
+    const user = currentUser(cookies);
+    return user ? reply(200, user) : reply(401, { message: "Not authenticated" });
   }
 
   if (route === "POST /users/logout") {

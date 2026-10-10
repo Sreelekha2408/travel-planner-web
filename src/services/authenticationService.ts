@@ -15,6 +15,20 @@ export type LoginRequest = {
   rememberMe?: boolean; // "Keep me signed in": 7-day session instead of 30 minutes
 };
 
+// Matches the fields of UserRequestDTO that the sign-up form collects; the backend
+// uses the email as the username when none is sent.
+export type SignUpRequest = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+};
+
+// Creates the account only; it does not sign in (no cookie is set).
+export function signUp(request: SignUpRequest) {
+  return apiFetch<User>("/users/signup", { method: "POST", body: JSON.stringify(request) });
+}
+
 // On success the server sets the HttpOnly auth cookie and returns the user.
 export function signIn(credentials: LoginRequest) {
   return apiFetch<User>("/users/login", {
