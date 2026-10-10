@@ -7,7 +7,7 @@ This document covers:
 
 1. [The idea in one minute](#1-the-idea-in-one-minute)
 2. [The request flow, header by header](#2-the-request-flow-header-by-header)
-3. [Backend changes in travel-planner-api](#3-backend-changes-in-travel-planner-api) (file by file)
+3. [Backend changes in travel-planner-api](#3-backend-changes-in-travel-planner-api) (commit by commit)
 4. [Frontend changes in travel-planner-web](#4-frontend-changes-in-travel-planner-web)
 5. [Gotchas found while testing](#5-gotchas-found-while-testing)
 6. [How to verify it in the browser](#6-how-to-verify-it-in-the-browser)
@@ -88,289 +88,38 @@ server just checks that header == cookie.
 
 ## 3. Backend changes in travel-planner-api
 
-Only the auth pieces change. Trips, expenses and itineraries stay the same.
+The backend changes are 5 small commits in `travel-planner-api`, one idea each, so each
+diff is easy to read. View one with `git show <hash>`, or all of them with `git log -p`.
 
-| File | Change |
-| ---- | ------ |
-| `application.properties` | JWT secret + expiry from config, cookie `Secure` flag |
-| `jwt/JwtService.java` | Fixed key from config; email as the JWT subject |
-| `jwt/AuthCookies.java` | **New**: builds the HttpOnly cookie |
-| `jwt/JwtFilter.java` | Read the JWT from the cookie instead of the `Authorization` header |
-| `config/SpaCsrfTokenRequestHandler.java` | **New**: CSRF token handling for an SPA |
-| `config/SecurityConfig.java` | CSRF on, 401 for "not logged in", new public endpoints |
-| `config/UserAuthService.java` + `repo/UserRepo.java` | Look users up by email |
-| `dto/user/UserLoginRequest.java` | `username` → `email` |
-| `service/UserService.java` | `verifyUser` throws on bad credentials instead of returning `""` |
-| `controller/UserController.java` | Login sets the cookie; new `/me` and `/logout` |
-| `controller/ApiExceptionHandler.java` | **New**: bad credentials → `401 {message}` |
+| Commit | What and why | Files |
+| ------ | ------------ | ----- |
+| `e637be2` | **JWT key from config.** The key was regenerated on every start, so a restart logged everyone out | `jwt/JwtService.java`, `application.properties` |
+| `814bd78` | **Log in with email.** Lookup by email; JWT subject = email | `repo/UserRepo.java`, `config/UserAuthService.java`, `dto/user/UserLoginRequest.java`, `service/UserService.java`, `jwt/JwtService.java` |
+| `45b8c56` | **Real 401s.** Wrong password was `200 ""`; logged-out requests were `403` | `service/UserService.java`, `controller/ApiExceptionHandler.java` (new), `config/SecurityConfig.java` |
+| `76c0ffd` | **The cookie.** Login sets an HttpOnly cookie; the filter reads it; new `/me` and `/logout` | `jwt/AuthCookies.java` (new), `jwt/JwtFilter.java`, `controller/UserController.java`, `service/UserService.java`, `config/SecurityConfig.java`, `application.properties` |
+| `3767be0` | **CSRF on.** Readable `XSRF-TOKEN` cookie + SPA handler; no token rotation | `config/SpaCsrfTokenRequestHandler.java` (new), `config/SecurityConfig.java` |
 
-> **Why services don't change:** the JWT subject becomes the email, and users are *looked up*
-> by email, but `UserPrincipal.getUsername()` still returns the username. So every
-> `SecurityContextHolder…getAuthentication().getName()` in TripService, ExpenseService,
-> ItineraryService and DashboardService still gets the username, as it does today.
-
-### 3.1 `application.properties`
-
-```properties
-# 256-bit HMAC key, base64. Dev-only value: in production inject it from an
-# environment variable (APP_JWT_SECRET) and never commit it.
-app.jwt.secret=ZGV2LW9ubHktc2VjcmV0LWNoYW5nZS1tZS0zMi1ieXRlcy1sb25nISE=
-app.jwt.expiration=30m
-# false only because local dev is plain http. Must be true in production.
-app.auth.cookie-secure=false
+```bash
+cd ~/Study/Personal\ projects/travel-planner-api
+git log --oneline
+git show 76c0ffd        # the cookie commit
 ```
 
-Generate a real key with `openssl rand -base64 32`.
+> **Why services don't change:** users are *looked up* by email, but
+> `UserPrincipal.getUsername()` still returns the username, so every
+> `getAuthentication().getName()` in TripService, ExpenseService, ItineraryService and
+> DashboardService still gets the username.
 
-### 3.2 `jwt/JwtService.java`
+**Config the backend now reads** (`application.properties`):
 
-Two changes:
-- **Key from config.** Today `generateKey()` creates a new random key on every start, so a
-  restart invalidates every cookie and logs everyone out. Running two instances would also break.
-- **Subject = email**, because that's what users sign in with.
+| Property | Dev default | Production |
+| -------- | ----------- | ---------- |
+| `app.jwt.secret` | dev-only key | `APP_JWT_SECRET` (generate with `openssl rand -base64 32`) |
+| `app.jwt.expiration` | `30m` | same |
+| `app.auth.cookie-secure` | `false` (dev is plain http) | `APP_COOKIE_SECURE=true` |
 
-```java
-@Service
-public class JwtService {
-
-  private final SecretKey secretKey;
-  private final Duration expiration;
-
-  public JwtService(@Value("${app.jwt.secret}") String secret,
-                    @Value("${app.jwt.expiration}") Duration expiration) {
-    this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
-    this.expiration = expiration;
-  }
-
-  public String generateToken(String email) {
-    Instant now = Instant.now();
-    return Jwts.builder()
-            .subject(email)
-            .issuedAt(Date.from(now))
-            .expiration(Date.from(now.plus(expiration)))
-            .signWith(secretKey)
-            .compact();
-  }
-
-  // Empty for a bad signature, an expired token or garbage.
-  public Optional<String> extractEmail(String token) {
-    try {
-      return Optional.ofNullable(
-              Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getSubject());
-    } catch (JwtException | IllegalArgumentException e) {
-      return Optional.empty();
-    }
-  }
-}
-```
-Imports: `io.jsonwebtoken.io.Decoders`, `io.jsonwebtoken.security.Keys`, `io.jsonwebtoken.JwtException`.
-`validateToken`/`extractUsername` are replaced by `extractEmail`.
-
-### 3.3 `jwt/AuthCookies.java` (new)
-
-Every cookie attribute is a security decision, so they live in one place.
-
-```java
-@Component
-public class AuthCookies {
-
-  public static final String ACCESS_TOKEN = "access_token";
-
-  private final boolean secure;
-  private final Duration maxAge;
-
-  public AuthCookies(@Value("${app.auth.cookie-secure}") boolean secure,
-                     @Value("${app.jwt.expiration}") Duration maxAge) {
-    this.secure = secure;
-    this.maxAge = maxAge; // cookie lifetime matches the JWT lifetime
-  }
-
-  public ResponseCookie create(String jwt) {
-    return base(jwt).maxAge(maxAge).build();
-  }
-
-  // Same name + path, empty value, Max-Age=0: the only way to delete an HttpOnly cookie.
-  public ResponseCookie clear() {
-    return base("").maxAge(0).build();
-  }
-
-  private ResponseCookie.ResponseCookieBuilder base(String value) {
-    return ResponseCookie.from(ACCESS_TOKEN, value)
-            .httpOnly(true)   // invisible to document.cookie -> XSS can't steal it
-            .secure(secure)   // HTTPS only (true in production)
-            .sameSite("Lax")  // not sent on cross-site POST/PUT/DELETE -> first CSRF defence
-            .path("/");       // keep "/": the dev proxy rewrites /api/users -> /users
-  }
-}
-```
-
-### 3.4 `jwt/JwtFilter.java`
-
-Same filter, different source: the cookie instead of the `Authorization: Bearer` header.
-
-```java
-@Override
-protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                FilterChain filterChain) throws ServletException, IOException {
-  Cookie cookie = WebUtils.getCookie(request, AuthCookies.ACCESS_TOKEN);
-  if (cookie != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-    jwtService.extractEmail(cookie.getValue()).ifPresent(email -> {
-      try {
-        UserDetails user = userAuthService.loadUserByUsername(email);
-        SecurityContextHolder.getContext().setAuthentication(
-                UsernamePasswordAuthenticationToken.authenticated(user, null, user.getAuthorities()));
-      } catch (UsernameNotFoundException ignored) {
-        // Valid token for a deleted user: continue as anonymous -> 401 on protected routes.
-      }
-    });
-  }
-  filterChain.doFilter(request, response);
-}
-```
-Imports: `jakarta.servlet.http.Cookie`, `org.springframework.web.util.WebUtils`,
-`org.springframework.security.core.userdetails.UsernameNotFoundException`.
-
-### 3.5 `config/SpaCsrfTokenRequestHandler.java` (new)
-
-Copied from the Spring Security 6 reference ("Single-Page Applications"). Spring Security 7
-replaces it with `csrf.spa()`, but your project is on 6.5.
-
-```java
-public final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
-
-  private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
-  private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
-
-  @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
-    // BREACH protection for server-rendered pages that embed the token.
-    this.xor.handle(request, response, csrfToken);
-    // Spring loads the token lazily; loading it here makes the XSRF-TOKEN cookie
-    // appear on the first response, so the SPA has a value to send back.
-    csrfToken.get();
-  }
-
-  @Override
-  public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
-    // The SPA sends the raw cookie value in the header -> compare it as-is.
-    String headerValue = request.getHeader(csrfToken.getHeaderName());
-    return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request, csrfToken);
-  }
-}
-```
-
-### 3.6 `config/SecurityConfig.java`
-
-Only `securityFilterChain` changes; the `authenticationProvider`, `authenticationManager` and
-`passwordEncoder` beans stay as they are.
-
-```java
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-  return http
-          // CSRF must be ON now: the browser sends the auth cookie automatically.
-          .csrf(csrf -> csrf
-                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // JS must read XSRF-TOKEN
-                  .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-                  .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())) // see gotcha 5.1
-          .authorizeHttpRequests(request -> request
-                  .requestMatchers(HttpMethod.POST, "/users/signup", "/users/login", "/users/logout").permitAll()
-                  .requestMatchers("/error").permitAll() // see gotcha 5.2
-                  .anyRequest().authenticated())
-          .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-          // Not logged in -> 401. Without this Spring answers 403, and the frontend can't
-          // tell "not logged in" from "not allowed".
-          .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-          .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-          .authenticationProvider(authenticationProvider())
-          .build();
-}
-```
-
-### 3.7 Look users up by email
-
-```java
-// repo/UserRepo.java
-User findByEmail(String email);
-
-// config/UserAuthService.java: Spring calls the login identifier "username"; ours is the email.
-@Override
-public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-  User user = userRepo.findByEmail(email);
-  if (user == null) {
-    throw new UsernameNotFoundException("User not found " + email);
-  }
-  return new UserPrincipal(user); // getUsername() still returns the username (see note above)
-}
-
-// dto/user/UserLoginRequest.java
-private String email;      // was: username
-private String password;
-```
-
-### 3.8 `service/UserService.java`
-
-Today `verifyUser` catches every exception and returns `""` with status **200**, so the
-frontend can't tell a wrong password from success. Let the exception propagate instead:
-
-```java
-public String verifyUser(UserLoginRequest userLoginRequest) {
-  // Throws BadCredentialsException for a wrong email or password -> ApiExceptionHandler -> 401
-  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-          userLoginRequest.getEmail(), userLoginRequest.getPassword()));
-  return jwtService.generateToken(userLoginRequest.getEmail());
-}
-
-public User getUserByEmail(String email) {
-  return userRepo.findByEmail(email);
-}
-```
-
-### 3.9 `controller/UserController.java`
-
-`/login` now returns the user and puts the token in `Set-Cookie`. `/me` and `/logout` are new.
-
-```java
-@Autowired
-AuthCookies authCookies;
-
-@PostMapping("/login")
-public ResponseEntity<UserResponseDTO> login(@RequestBody UserLoginRequest userLoginRequest) {
-  String jwt = userService.verifyUser(userLoginRequest);
-  User user = userService.getUserByEmail(userLoginRequest.getEmail());
-  return ResponseEntity.ok()
-          .header(HttpHeaders.SET_COOKIE, authCookies.create(jwt).toString())
-          .body(userMapper.toResponse(user)); // the token is NOT in the body
-}
-
-// Reached only with a valid cookie; otherwise the entry point answers 401.
-@GetMapping("/me")
-public UserResponseDTO me(Authentication authentication) {
-  return userMapper.toResponse(userService.getUserDetails(authentication.getName()));
-}
-
-@PostMapping("/logout")
-public ResponseEntity<Void> logout() {
-  return ResponseEntity.noContent()
-          .header(HttpHeaders.SET_COOKIE, authCookies.clear().toString())
-          .build();
-}
-```
-
-### 3.10 `controller/ApiExceptionHandler.java` (new)
-
-```java
-@RestControllerAdvice
-public class ApiExceptionHandler {
-
-  // Same message for "no such email" and "wrong password", so nobody can probe which emails exist.
-  @ExceptionHandler(AuthenticationException.class)
-  @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public Map<String, String> handleAuthentication(AuthenticationException e) {
-    return Map.of("message", "Invalid email or password");
-  }
-}
-```
+The database password lives in the gitignored `src/main/resources/local.properties`
+(see `local.properties.example`).
 
 ---
 
@@ -416,12 +165,12 @@ Spring rotates the CSRF token when it thinks a user *just logged in*
 is re-authenticated from the cookie on **every** request, so Spring "sees a login" each time
 and rotates the token. Any request sent with the previous token, such as two parallel
 POSTs, fails with 403.
-**Fix:** `.sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())` on the CSRF config.
+**Fix:** `.sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())` on the CSRF config (commit `3767be0`).
 
 ### 5.2 A CSRF failure came back as 401, not 403
 `CsrfFilter` correctly sends 403, but Spring Boot forwards errors to `/error`. `/error` fell
 under `anyRequest().authenticated()`, so the 401 entry point overwrote the 403.
-**Fix:** `.requestMatchers("/error").permitAll()`.
+**Fix:** `.requestMatchers("/error").permitAll()` (commit `45b8c56`).
 
 ### 5.3 curl worked, the browser got 403 (CORS behind a proxy)
 Browsers send an `Origin` header on POST requests, and curl doesn't. The Vite proxy rewrites
