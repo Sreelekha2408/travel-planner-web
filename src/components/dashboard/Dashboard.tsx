@@ -1,42 +1,39 @@
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography } from "@mui/material";
-import { useState } from "react";
-import { Fragment } from "react/jsx-runtime";
+
+const drawerWidth = 240;
 
 const Dashboard = () => {
-  const [open, setOpen] = useState(true);
   return (
-    <Fragment>
+    <Box sx={{ display: "flex" }}>
       <Drawer
         anchor="left"
         variant="permanent"
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
         sx={{
+          width: drawerWidth,
+          flexShrink: 0,
           "& .MuiDrawer-paper": {
-            width: "18%",
+            width: drawerWidth,
+            boxSizing: "border-box",
             bgcolor: "yellow",
           },
         }}
       >
-          <Typography variant="h3">TravelPlan</Typography>
-          <Typography>Menu</Typography>
-          <List>
-            {['Dashboard', 'My Trips', 'Itinerary', 'Expenses', 'Packing List', 'Shared Trips'].map((text, index) => (
-              <ListItem key={text} disablePadding>
-                <ListItemButton>
-                  {/* <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon> */}
-                  <ListItemText primary={text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
+        <Typography variant="h3">TravelPlan</Typography>
+        <Typography>Menu</Typography>
+        <List>
+          {['Dashboard', 'My Trips', 'Itinerary', 'Expenses', 'Packing List', 'Shared Trips'].map((text) => (
+            <ListItem key={text} disablePadding>
+              <ListItemButton>
+                <ListItemText primary={text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
       </Drawer>
-      <h1 style={{ marginLeft: "20%"}}>Cards</h1>
-    </Fragment>
-  )
-}
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <h1>Cards</h1>
+      </Box>
+    </Box>
+  );
+};
 export default Dashboard;
