@@ -1,15 +1,17 @@
-import { MailOutlined } from "@mui/icons-material";
-import { Alert, Button, Grid, InputAdornment, InputLabel, Typography } from "@mui/material";
-import TextField from "@mui/material/TextField";
-import { useForm } from "react-hook-form";
-import LoginIcon from '@mui/icons-material/Login';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { Alert, Box, Button, Checkbox, FormControlLabel, InputLabel, Link, TextField, Typography } from "@mui/material";
+import { Controller, useForm } from "react-hook-form";
+import { Link as RouterLink } from "react-router-dom";
+import { colors } from "../../common/theme";
+import { EMAIL_PATTERN } from "../../common/tripUtils";
 import { useAuth } from "../../context/useAuth";
+import Logo from "../layout/Logo";
 import { ApiError } from "../../services/serviceWrapper";
+import { authInputSx, authLabelSx, authSubmitSx } from "./styles";
 
 type SignInFormValues = {
   email: string;
   password: string;
+  rememberMe: boolean;
 };
 
 function getSignInErrorMessage(error: unknown): string {
@@ -23,7 +25,13 @@ function getSignInErrorMessage(error: unknown): string {
 
 const SignInForm = () => {
   const { signIn } = useAuth();
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<SignInFormValues>();
+  const {
+    register,
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<SignInFormValues>({ defaultValues: { email: "", password: "", rememberMe: false } });
 
   // isSubmitting stays true while this promise is pending. On success the auth status
   // changes and the SignIn page redirects, so there is no navigate() call here.
@@ -36,88 +44,71 @@ const SignInForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      style={{
-        width: "100%"
-      }}
-    >
-      <Grid container>
-        <Grid size={12} sx={{ mb: 8 }}>
-          <Typography component="h1" sx={{ fontSize: 42, fontWeight: "bold" }}>Welcome back!</Typography>
-          <Typography sx={{ fontSize: 18 }}>Sign in to continue your journey</Typography>
-        </Grid>
-        {errors.root?.serverError && (
-          <Grid size={12} sx={{ mb: 3 }}>
-            <Alert severity="error">{errors.root.serverError.message}</Alert>
-          </Grid>
-        )}
-        <Grid size={12} sx={{ mb: 4 }}>
-          <InputLabel htmlFor="signin-email" sx={{ fontWeight: "bold", mb: 1 }}>Email address</InputLabel>
-          <TextField id="signin-email" variant="outlined" type="email"
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 3 }}>
+      {/* The brand panel (with its logo) is hidden on small screens */}
+      <Box sx={{ display: { xs: "block", md: "none" } }}><Logo /></Box>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+        <Typography component="h1" sx={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.01em" }}>Welcome back</Typography>
+        <Typography sx={{ fontSize: 14, color: colors.textMuted }}>Sign in to pick up where you left off.</Typography>
+      </Box>
+
+      {errors.root?.serverError && <Alert severity="error">{errors.root.serverError.message}</Alert>}
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box>
+          <InputLabel htmlFor="signin-email" sx={authLabelSx}>Email address</InputLabel>
+          <TextField
+            id="signin-email"
+            type="email"
             autoComplete="username"
-            placeholder="Enter your email"
-            sx={{
-              width: "100%"
-            }}
-            helperText={errors.email?.message}
+            placeholder="you@example.com"
+            fullWidth
+            sx={authInputSx}
             error={!!errors.email}
+            helperText={errors.email?.message}
             {...register("email", {
               required: "Email is required",
-              pattern: {
-                value: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
-                message: "Enter a valid email address",
-              },
+              pattern: { value: EMAIL_PATTERN, message: "Enter a valid email address" },
             })}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <MailOutlined />
-                  </InputAdornment>
-                ),
-              },
-            }}
           />
-        </Grid>
-        <Grid size={12} sx={{ mb: 4 }}>
-          <InputLabel htmlFor="signin-password" sx={{ fontWeight: "bold", mb: 1 }}>Password</InputLabel>
-          <TextField id="signin-password" variant="outlined" type="password"
+        </Box>
+        <Box>
+          {/* No length rule here: that belongs to sign-up. Older accounts may have shorter passwords. */}
+          <InputLabel htmlFor="signin-password" sx={authLabelSx}>Password</InputLabel>
+          <TextField
+            id="signin-password"
+            type="password"
             autoComplete="current-password"
             placeholder="Enter your password"
-            sx={{
-              width: "100%"
-            }}
-            {...register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 6,
-                message: "Password must be at least 6 characters",
-              },
-            })}
-            helperText={errors.password?.message}
+            fullWidth
+            sx={authInputSx}
             error={!!errors.password}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockOutlinedIcon />
-                  </InputAdornment>
-                ),
-              },
-            }}
+            helperText={errors.password?.message}
+            {...register("password", { required: "Password is required" })}
           />
-        </Grid>
-        <Grid size={12}>
-          <Button type="submit" variant="contained" color="primary" size="medium"
-            startIcon={<LoginIcon />}
-            disabled={isSubmitting}
-            sx={{ width: "100%", padding: "12px 6px" }}
-          >{isSubmitting ? "Signing in…" : "Sign in"}</Button>
-        </Grid>
-      </Grid>
-    </form>
-  );
+        </Box>
+        <Controller
+          name="rememberMe"
+          control={control}
+          render={({ field }) => (
+            <FormControlLabel
+              control={<Checkbox checked={field.value} onChange={(event) => field.onChange(event.target.checked)} size="small" />}
+              label="Keep me signed in on this device"
+              slotProps={{ typography: { sx: { fontSize: 13, color: "#3F4553" } } }}
+            />
+          )}
+        />
+      </Box>
 
-}
+      <Button type="submit" variant="contained" disabled={isSubmitting} sx={authSubmitSx}>
+        {isSubmitting ? "Signing in…" : "Sign in"}
+      </Button>
+
+      <Typography sx={{ textAlign: "center", fontSize: 14, color: colors.textMuted }}>
+        New to TravelPlan?{" "}
+        <Link component={RouterLink} to="/signup" sx={{ fontWeight: 600 }}>Create an account</Link>
+      </Typography>
+    </Box>
+  );
+};
 export default SignInForm;

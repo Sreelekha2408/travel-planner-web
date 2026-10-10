@@ -12,6 +12,7 @@ const SESSION_COOKIE = "access_token";
 const CSRF_COOKIE = "XSRF-TOKEN";
 const CSRF_HEADER = "x-xsrf-token"; // Node lower-cases incoming header names
 const SESSION_SECONDS = 30 * 60;
+const REMEMBER_ME_SECONDS = 7 * 24 * 60 * 60; // "Keep me signed in"
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 // Test account for local development only.
@@ -119,13 +120,14 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   const route = `${method} ${path}`;
 
   if (route === "POST /users/login") {
-    const body = (await readJson(req)) as { email?: string; password?: string } | undefined;
+    const body = (await readJson(req)) as { email?: string; password?: string; rememberMe?: boolean } | undefined;
     if (body?.email !== DEMO_USER.email || body?.password !== DEMO_PASSWORD) {
       return reply(401, { message: "Invalid email or password" });
     }
     const sessionId = randomUUID();
-    sessions.set(sessionId, Date.now() + SESSION_SECONDS * 1000);
-    setCookies.push(sessionCookie(sessionId, SESSION_SECONDS));
+    const seconds = body?.rememberMe ? REMEMBER_ME_SECONDS : SESSION_SECONDS;
+    sessions.set(sessionId, Date.now() + seconds * 1000);
+    setCookies.push(sessionCookie(sessionId, seconds));
     return reply(200, DEMO_USER);
   }
 

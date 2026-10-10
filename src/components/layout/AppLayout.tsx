@@ -6,11 +6,11 @@ import GridViewOutlined from "@mui/icons-material/GridViewOutlined";
 import GroupOutlined from "@mui/icons-material/GroupOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LuggageOutlined from "@mui/icons-material/LuggageOutlined";
-import NearMe from "@mui/icons-material/NearMe";
 import type { ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { colors } from "../../common/theme";
 import { useAuth } from "../../context/useAuth";
+import Logo from "./Logo";
 
 const sidebarWidth = 240;
 
@@ -52,24 +52,8 @@ const AppLayout = () => {
           boxSizing: "border-box",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 2.75, pb: 3.25 }}>
-          <Box
-            sx={{
-              width: 34,
-              height: 34,
-              borderRadius: "10px",
-              bgcolor: colors.primary,
-              color: colors.surface,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <NearMe fontSize="small" />
-          </Box>
-          <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
-            Travel<Box component="span" sx={{ color: colors.primary }}>Plan</Box>
-          </Typography>
+        <Box sx={{ px: 2.75, pb: 3.25 }}>
+          <Logo />
         </Box>
 
         <Typography

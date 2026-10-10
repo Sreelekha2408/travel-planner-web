@@ -12,6 +12,7 @@ export type User = {
 export type LoginRequest = {
   email: string;
   password: string;
+  rememberMe?: boolean; // "Keep me signed in": 7-day session instead of 30 minutes
 };
 
 // On success the server sets the HttpOnly auth cookie and returns the user.
