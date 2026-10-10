@@ -7,7 +7,7 @@ const drawerWidth = 240;
 const Dashboard = () => {
   const auth = useAuth();
   // Rendered inside ProtectedRoute, so this is always "authenticated" in practice.
-  const userName = auth.status === "authenticated" ? auth.user.name : "";
+  const userName = auth.status === "authenticated" ? `${auth.user.firstName} ${auth.user.lastName}` : "";
 
   return (
     <Box sx={{ display: "flex" }}>

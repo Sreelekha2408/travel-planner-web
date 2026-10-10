@@ -1,4 +1,4 @@
-// Dev-only mock of the auth API, enabled with `npm run dev:mock`.
+// Dev-only mock of the auth endpoints (/users/login, /users/me, /users/logout), enabled with `npm run dev:mock`.
 // It is a real HTTP handler inside the Vite dev server, so it sends real Set-Cookie
 // headers: you can inspect the HttpOnly session cookie in DevTools > Application > Cookies.
 // It mirrors what the Spring Boot backend does (see docs/AUTH.md); delete it once the
@@ -14,7 +14,7 @@ const SESSION_SECONDS = 30 * 60;
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 // Test account for local development only.
-const DEMO_USER = { id: 1, email: "demo@travelplan.test", name: "Demo Traveller" };
+const DEMO_USER = { userId: 1, username: "demo", email: "demo@travelplan.test", firstName: "Demo", lastName: "Traveller" };
 const DEMO_PASSWORD = "password123";
 
 // session id -> expiry timestamp (ms). The real backend uses a signed JWT instead;
@@ -115,7 +115,7 @@ export function authMock(): Plugin {
     name: "auth-mock",
     configureServer(server) {
       // Registered directly (not in a returned hook), so it runs before Vite's /api proxy.
-      server.middlewares.use("/api/auth", (req, res) => {
+      server.middlewares.use("/api/users", (req, res) => {
         handleAuth(req, res).catch(() => send(res, 500, { message: "Mock server error" }));
       });
     },

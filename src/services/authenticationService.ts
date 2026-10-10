@@ -1,10 +1,12 @@
 import { apiFetch } from "./serviceWrapper";
 
-// Frontend-defined contract; the Java backend implements it (see docs/AUTH.md).
+// Subset of UserResponseDTO in travel-planner-api (see docs/AUTH.md).
 export type User = {
-  id: number;
+  userId: number;
+  username: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 };
 
 export type LoginRequest = {
@@ -14,7 +16,7 @@ export type LoginRequest = {
 
 // On success the server sets the HttpOnly auth cookie and returns the user.
 export function signIn(credentials: LoginRequest) {
-  return apiFetch<User>("/auth/login", {
+  return apiFetch<User>("/users/login", {
     method: "POST",
     body: JSON.stringify(credentials),
   });
@@ -22,10 +24,10 @@ export function signIn(credentials: LoginRequest) {
 
 // The cookie is unreadable from JS, so "am I logged in?" is answered by the server.
 export function getCurrentUser() {
-  return apiFetch<User>("/auth/me");
+  return apiFetch<User>("/users/me");
 }
 
 // Only the server can clear an HttpOnly cookie.
 export function signOut() {
-  return apiFetch<void>("/auth/logout", { method: "POST" });
+  return apiFetch<void>("/users/logout", { method: "POST" });
 }
