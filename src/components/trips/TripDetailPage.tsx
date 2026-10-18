@@ -1,8 +1,5 @@
-import { Box, Button, Chip, Link, Skeleton, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Chip, IconButton, Link, Skeleton, Tab, Tabs, Tooltip, Typography } from "@mui/material";
 import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
-import EditOutlined from "@mui/icons-material/EditOutlined";
-import PersonAddAlt1Outlined from "@mui/icons-material/PersonAddAlt1Outlined";
-import ShareOutlined from "@mui/icons-material/ShareOutlined";
 import { useState, type ReactNode } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { gradients } from "../../common/theme";
@@ -17,13 +14,12 @@ import {
   tripLengthInDays,
   tripTypeWithEmoji,
 } from "../../common/tripUtils";
-import { useNotify } from "../../context/useNotify";
 import { ApiError } from "../../services/serviceWrapper";
-import { useTrip, useUpdateTrip } from "../../services/tripQueries";
-import { toTripInput, type Trip } from "../../services/tripService";
+import { useTrip } from "../../services/tripQueries";
+import type { Trip } from "../../services/tripService";
 import { TripLoadError } from "./TripFormPage";
-import InviteeList from "./InviteeList";
 import ShareTripDialog from "./ShareTripDialog";
+import TravellersCard from "./TravellersCard";
 import TripStatusChip from "./TripStatusChip";
 
 const headerBadgeSx = { bgcolor: "brand.glass", color: "common.white", fontWeight: 600, fontSize: 13, height: 28, px: 0.5 };
@@ -42,29 +38,14 @@ const DetailRow = ({ emoji, label, children }: { emoji: string; label: string; c
 
 const cardSx = { bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 2.75 };
 
-const headerButtonSx = { bgcolor: "brand.glass", color: "common.white", flexShrink: 0, "&:hover": { bgcolor: "brand.glassStrong" } };
+// The design's 36px translucent squares
+const headerIconButtonSx = { width: 36, height: 36, borderRadius: 2.5, fontSize: 16, bgcolor: "brand.glass", "&:hover": { bgcolor: "brand.glassStrong" } };
 
 const TripDetail = ({ trip }: { trip: Trip }) => {
   const [shareOpen, setShareOpen] = useState(false);
   const days = tripLengthInDays(trip.startDate, trip.endDate);
   const length = `${days} ${days === 1 ? "day" : "days"}`;
   const travellers = formatTravellers(trip.travellers);
-  const notify = useNotify();
-  const updateTrip = useUpdateTrip(trip.tripId);
-  // The API returns invites as a set (no order); alphabetical keeps the list stable.
-  const invitees = [...trip.invitedEmails].sort();
-
-  // Removing is a normal trip update with that email left out. No confirmation: it's easy
-  // to undo by inviting them again.
-  const removeInvite = (email: string) => {
-    updateTrip.mutate(
-      { ...toTripInput(trip), invitedEmails: trip.invitedEmails.filter((e) => e !== email) },
-      {
-        onSuccess: () => notify.success(`Removed ${email}`),
-        onError: (error) => notify.error(error.message || "Couldn't remove the invite. Please try again."),
-      },
-    );
-  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -81,14 +62,21 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
           borderRadius: 4,
           p: { xs: 2.5, sm: 3.5 },
           color: "common.white",
-          display: "flex",
-          flexWrap: { xs: "wrap", md: "nowrap" },
-          alignItems: "flex-start", // Edit trip sits top-right, as in the design
-          justifyContent: "space-between",
-          gap: 2.5,
+          position: "relative", // anchors the action buttons top-right, as in the design
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2.5, minWidth: 0 }}>
+        {/* Phones: emoji on top (sharing the row with the buttons), text below.
+            Wider: emoji beside the text, with room kept on the right for the buttons. */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 2.5,
+            minWidth: 0,
+            pr: { sm: 12 },
+          }}
+        >
           <Box
             aria-hidden
             sx={{ width: { xs: 64, sm: 84 }, height: { xs: 64, sm: 84 }, borderRadius: "50%", bgcolor: "brand.glass", display: "flex", alignItems: "center", justifyContent: "center", fontSize: { xs: 34, sm: 44 }, flexShrink: 0 }}
@@ -111,14 +99,18 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
             </Box>
           </Box>
         </Box>
-        {/* Share + Edit, top-right as in the design */}
-        <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
-          <Button startIcon={<ShareOutlined />} onClick={() => setShareOpen(true)} sx={headerButtonSx}>
-            Share
-          </Button>
-          <Button component={RouterLink} to={`/trips/${trip.tripId}/edit`} startIcon={<EditOutlined />} sx={headerButtonSx}>
-            Edit trip
-          </Button>
+        {/* Edit + Share as emoji icon buttons, top-right as in the design */}
+        <Box sx={{ position: "absolute", top: { xs: 20, sm: 24 }, right: { xs: 20, sm: 24 }, display: "flex", gap: 1 }}>
+          <Tooltip title="Edit trip">
+            <IconButton component={RouterLink} to={`/trips/${trip.tripId}/edit`} aria-label="Edit trip" sx={headerIconButtonSx}>
+              <span aria-hidden>✏️</span>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Share trip">
+            <IconButton onClick={() => setShareOpen(true)} aria-label="Share trip" sx={headerIconButtonSx}>
+              <span aria-hidden>🔗</span>
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
 
@@ -130,7 +122,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
         ))}
       </Tabs>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }, gap: 3, alignItems: "start" }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 280px" }, gap: 3, alignItems: "start" }}>
         <Box sx={cardSx}>
           <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700, mb: 1 }}>Trip details</Typography>
           <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
@@ -154,29 +146,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
           </Box>
         </Box>
 
-        <Box sx={cardSx}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: 0.5 }}>
-            <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700 }}>🧑‍🤝‍🧑 Invited travellers</Typography>
-            {trip.invitedEmails.length > 0 && (
-              <Button size="small" onClick={() => setShareOpen(true)}>Manage</Button>
-            )}
-          </Box>
-          {trip.invitedEmails.length > 0 ? (
-            <>
-              <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 1.5 }}>
-                Saved with the trip. Invites aren't sent yet: that comes with Shared trips.
-              </Typography>
-              <InviteeList emails={invitees} onRemove={removeInvite} disabled={updateTrip.isPending} />
-            </>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1.5 }}>
-              <Typography sx={{ fontSize: 13, color: "text.secondary" }}>No one invited yet.</Typography>
-              <Button variant="outlined" startIcon={<PersonAddAlt1Outlined />} onClick={() => setShareOpen(true)}>
-                Invite someone
-              </Button>
-            </Box>
-          )}
-        </Box>
+        <TravellersCard trip={trip} />
       </Box>
 
       {/* key: remount on open so the dialog starts from the saved invites */}

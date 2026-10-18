@@ -7,7 +7,6 @@ import { colorIndex } from "../../common/tripUtils";
 type InviteeListProps = {
   emails: string[];
   onRemove?: (email: string) => void; // omit for a read-only list
-  disabled?: boolean; // e.g. while a removal is saving
 };
 
 // About four and a half rows: past that the list scrolls instead of growing, and the half
@@ -15,7 +14,7 @@ type InviteeListProps = {
 const MAX_LIST_HEIGHT = 250;
 
 // Invited travellers as rows: initial avatar, email, status and an optional remove button.
-const InviteeList = ({ emails, onRemove, disabled = false }: InviteeListProps) => {
+const InviteeList = ({ emails, onRemove }: InviteeListProps) => {
   if (emails.length === 0) return null;
 
   return (
@@ -49,18 +48,14 @@ const InviteeList = ({ emails, onRemove, disabled = false }: InviteeListProps) =
             </Box>
             {onRemove && (
               <Tooltip title="Remove">
-                {/* span: Tooltip needs an element that gets events even when the button is disabled */}
-                <span>
-                  <IconButton
-                    size="small"
-                    aria-label={`Remove ${email}`}
-                    onClick={() => onRemove(email)}
-                    disabled={disabled}
-                    sx={{ color: "text.secondary", "&:hover": { color: "error.main", bgcolor: (theme) => alpha(theme.palette.error.main, 0.08) } }}
-                  >
-                    <DeleteOutlined fontSize="small" />
-                  </IconButton>
-                </span>
+                <IconButton
+                  size="small"
+                  aria-label={`Remove ${email}`}
+                  onClick={() => onRemove(email)}
+                  sx={{ color: "text.secondary", "&:hover": { color: "error.main", bgcolor: (theme) => alpha(theme.palette.error.main, 0.08) } }}
+                >
+                  <DeleteOutlined fontSize="small" />
+                </IconButton>
               </Tooltip>
             )}
           </Box>
