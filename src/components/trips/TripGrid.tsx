@@ -1,8 +1,9 @@
-import { Alert, Box, Button, Skeleton, Snackbar, Typography } from "@mui/material";
+import { Alert, Box, Button, Skeleton, Typography } from "@mui/material";
 import AddRounded from "@mui/icons-material/AddRounded";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { sortTrips } from "../../common/tripUtils";
+import { useNotify } from "../../context/useNotify";
 import { useTrips } from "../../services/tripQueries";
 import type { Trip } from "../../services/tripService";
 import DeleteTripDialog from "./DeleteTripDialog";
@@ -14,9 +15,9 @@ const gridSx = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax
 // and the Dashboard (`limit` = next few trips).
 const TripGrid = ({ limit }: { limit?: number }) => {
   const navigate = useNavigate();
+  const notify = useNotify();
   const { data: trips, isPending, isError, error, refetch, isFetching } = useTrips();
   const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
-  const [deletedTitle, setDeletedTitle] = useState<string | null>(null);
 
   if (isPending) {
     return (
@@ -72,14 +73,8 @@ const TripGrid = ({ limit }: { limit?: number }) => {
         onClose={() => setTripToDelete(null)}
         onDeleted={(t) => {
           setTripToDelete(null);
-          setDeletedTitle(t.title);
+          notify.success(`“${t.title}” was deleted`);
         }}
-      />
-      <Snackbar
-        open={deletedTitle !== null}
-        autoHideDuration={4000}
-        onClose={() => setDeletedTitle(null)}
-        message={`“${deletedTitle}” was deleted`}
       />
     </>
   );

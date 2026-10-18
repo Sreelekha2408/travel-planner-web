@@ -2,8 +2,8 @@ import { Alert, Box, Button, Link, Skeleton, Typography } from "@mui/material";
 import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
 import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../../services/serviceWrapper";
+import { useNotify } from "../../context/useNotify";
 import { useCreateTrip, useTrip, useUpdateTrip } from "../../services/tripQueries";
-import type { Trip } from "../../services/tripService";
 import TripForm from "./TripForm";
 
 const PageHeader = ({ title, subtitle, backTo, backLabel }: { title: string; subtitle: string; backTo: string; backLabel: string }) => (
@@ -19,6 +19,7 @@ const PageHeader = ({ title, subtitle, backTo, backLabel }: { title: string; sub
 
 const NewTrip = () => {
   const navigate = useNavigate();
+  const notify = useNotify();
   const createTrip = useCreateTrip();
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -33,6 +34,7 @@ const NewTrip = () => {
         submittingLabel="Creating…"
         onSubmit={async (input) => {
           const trip = await createTrip.mutateAsync(input);
+          notify.success(`“${trip.title}” was created`);
           navigate(`/trips/${trip.tripId}`);
         }}
       />
@@ -42,6 +44,7 @@ const NewTrip = () => {
 
 const EditTrip = ({ tripId }: { tripId: number }) => {
   const navigate = useNavigate();
+  const notify = useNotify();
   const { data: trip, isPending, isError, error } = useTrip(tripId);
   const updateTrip = useUpdateTrip(tripId);
 
@@ -50,14 +53,15 @@ const EditTrip = ({ tripId }: { tripId: number }) => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <PageHeader title="Edit trip" subtitle={trip.title} backTo={`/trips/${trip.tripId}`} backLabel="Back to trip" />
+      <PageHeader title="Edit trip" subtitle={trip.title} backTo="/trips" backLabel="Back to trips" />
       <TripForm
         trip={trip}
         submitLabel="Save changes"
         submittingLabel="Saving…"
         onSubmit={async (input) => {
-          const saved: Trip = await updateTrip.mutateAsync(input);
-          navigate(`/trips/${saved.tripId}`);
+          const saved = await updateTrip.mutateAsync(input);
+          notify.success(`Changes to “${saved.title}” were saved`);
+          navigate("/trips");
         }}
       />
     </Box>

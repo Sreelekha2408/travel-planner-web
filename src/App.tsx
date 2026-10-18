@@ -9,6 +9,7 @@ import ProtectedRoute from './components/routing/ProtectedRoute';
 import NotFound from './components/NotFound';
 import AppLayout from './components/layout/AppLayout';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationProvider';
 import { queryClient } from './services/queryClient';
 import { theme } from './common/theme';
 import PageLoader from './components/layout/PageLoader';
@@ -30,53 +31,55 @@ function App() {
       <QueryClientProvider client={queryClient}>
         {/* Date pickers work with dayjs objects */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <AuthProvider>
-            <BrowserRouter>
-              {/* Fallback for lazy pages outside the app layout (e.g. sign-up) */}
-              <Suspense fallback={<PageLoader fullScreen />}>
-                <Routes>
-                  <Route path="/signin" element={<SignIn />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route element={<ProtectedRoute />}>
-                    <Route element={<AppLayout />}>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/trips" element={<TripsPage />} />
-                      <Route path="/trips/new" element={<TripFormPage />} />
-                      <Route
-                        path="/trips/:tripId"
-                        element={<TripDetailPage />}
-                      />
-                      <Route
-                        path="/trips/:tripId/edit"
-                        element={<TripFormPage />}
-                      />
-                      <Route
-                        path="/itinerary"
-                        element={<ComingSoon title="Itinerary" />}
-                      />
-                      <Route
-                        path="/expenses"
-                        element={<ComingSoon title="Expenses" />}
-                      />
-                      <Route
-                        path="/packing"
-                        element={<ComingSoon title="Packing list" />}
-                      />
-                      <Route
-                        path="/shared"
-                        element={<ComingSoon title="Shared trips" />}
-                      />
+          <NotificationProvider>
+            <AuthProvider>
+              <BrowserRouter>
+                {/* Fallback for lazy pages outside the app layout (e.g. sign-up) */}
+                <Suspense fallback={<PageLoader fullScreen />}>
+                  <Routes>
+                    <Route path="/signin" element={<SignIn />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route element={<ProtectedRoute />}>
+                      <Route element={<AppLayout />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/trips" element={<TripsPage />} />
+                        <Route path="/trips/new" element={<TripFormPage />} />
+                        <Route
+                          path="/trips/:tripId"
+                          element={<TripDetailPage />}
+                        />
+                        <Route
+                          path="/trips/:tripId/edit"
+                          element={<TripFormPage />}
+                        />
+                        <Route
+                          path="/itinerary"
+                          element={<ComingSoon title="Itinerary" />}
+                        />
+                        <Route
+                          path="/expenses"
+                          element={<ComingSoon title="Expenses" />}
+                        />
+                        <Route
+                          path="/packing"
+                          element={<ComingSoon title="Packing list" />}
+                        />
+                        <Route
+                          path="/shared"
+                          element={<ComingSoon title="Shared trips" />}
+                        />
+                      </Route>
                     </Route>
-                  </Route>
-                  <Route
-                    path="/"
-                    element={<Navigate to="/dashboard" replace />}
-                  />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-          </AuthProvider>
+                    <Route
+                      path="/"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </BrowserRouter>
+            </AuthProvider>
+          </NotificationProvider>
         </LocalizationProvider>
       </QueryClientProvider>
     </ThemeProvider>

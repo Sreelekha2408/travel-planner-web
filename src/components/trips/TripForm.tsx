@@ -16,6 +16,7 @@ import {
 } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import type { Trip, TripInput, TripType } from "../../services/tripService";
+import { useNotify } from "../../context/useNotify";
 import CurrencyPicker from "./CurrencyPicker";
 import InviteEmailsField from "./InviteEmailsField";
 
@@ -118,6 +119,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
   // register() returns a ref that, on a MUI TextField, lands on the wrapper; react-hook-form
   // then binds to the first <input> inside it. The budget field has the currency Select's
   // hidden input first, so its ref goes straight to the real input via inputRef instead.
+  const notify = useNotify();
   const budgetFieldRef = useRef<HTMLDivElement>(null); // anchor for the currency menu
   const { ref: budgetRef, ...budgetField } = register("budget", {
     validate: (value) => value === "" || Number(value) >= 0 || "Budget can't be negative",
@@ -127,7 +129,10 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
     try {
       await onSubmit(toTripInput(values));
     } catch (error) {
-      setError("root.serverError", { message: getSaveErrorMessage(error) });
+      const message = getSaveErrorMessage(error);
+      // Inline alert (stays visible) + toast (the alert can be scrolled out of view).
+      setError("root.serverError", { message });
+      notify.error(message);
     }
   };
 
@@ -331,7 +336,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
         />
 
         <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 1.5, pt: 2, borderTop: 1, borderColor: "divider" }}>
-          <Button component={RouterLink} to={trip ? `/trips/${trip.tripId}` : "/trips"} variant="outlined" disabled={isSubmitting}>
+          <Button component={RouterLink} to="/trips" variant="outlined" disabled={isSubmitting}>
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
