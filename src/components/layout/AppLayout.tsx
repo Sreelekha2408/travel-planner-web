@@ -7,10 +7,11 @@ import GroupOutlined from "@mui/icons-material/GroupOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LuggageOutlined from "@mui/icons-material/LuggageOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import Logo from "./Logo";
+import PageLoader from "./PageLoader";
 
 const sidebarWidth = 240;
 
@@ -158,7 +159,10 @@ const AppLayout = () => {
         </Box>
 
         <Box component="main" sx={{ flex: 1, px: { xs: 2, sm: 3, md: 4.5 }, py: { xs: 3, md: 4 } }}>
-          <Outlet />
+          {/* Lazy pages show a spinner here while their chunk loads; the sidebar stays put. */}
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </Box>
       </Box>
     </Box>
