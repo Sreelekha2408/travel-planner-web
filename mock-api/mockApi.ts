@@ -180,13 +180,18 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   return reply(404, { message: "Not found" });
 }
 
+// Same list as TripService in the backend and the frontend's currency picker.
+const SUPPORTED_CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
+
 // Same rules as TripService.validate in the backend.
 function validateTrip(body: Partial<MockTrip> | undefined): string | null {
   if (!body?.title?.trim() || !body.destination?.trim()) return "Trip name and destination are required";
   if (!body.startDate || !body.endDate) return "Start and end dates are required";
   if (body.endDate < body.startDate) return "End date must be on or after the start date";
   if (body.budget != null && body.budget < 0) return "Budget can't be negative";
-  if (body.currency != null && !/^[A-Z]{3}$/.test(body.currency)) return "Currency must be a 3-letter code like USD";
+  if (body.currency != null && !SUPPORTED_CURRENCIES.includes(body.currency)) {
+    return `Currency must be one of ${[...SUPPORTED_CURRENCIES].sort().join(", ")}`;
+  }
   if (body.travellers != null && (body.travellers < 1 || body.travellers > 50)) return "Travellers must be between 1 and 50";
   if ((body.invitedEmails?.length ?? 0) > 20) return "You can invite up to 20 people";
   return null;
