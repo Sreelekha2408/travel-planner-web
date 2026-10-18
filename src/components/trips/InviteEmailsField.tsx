@@ -28,7 +28,7 @@ const InviteEmailsField = ({
     if (!EMAIL_PATTERN.test(email)) return setError("Enter a valid email address");
     if (value.includes(email)) return setError("Already added");
     if (value.length >= MAX_INVITES) return setError(`You can invite up to ${MAX_INVITES} people`);
-    onChange([...value, email]);
+    onChange([email, ...value]); // newest first, so it's visible even when the list scrolls
     setDraft("");
     setError(null);
   };

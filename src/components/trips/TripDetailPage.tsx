@@ -17,9 +17,10 @@ import {
   tripLengthInDays,
   tripTypeWithEmoji,
 } from "../../common/tripUtils";
+import { useNotify } from "../../context/useNotify";
 import { ApiError } from "../../services/serviceWrapper";
-import { useTrip } from "../../services/tripQueries";
-import type { Trip } from "../../services/tripService";
+import { useTrip, useUpdateTrip } from "../../services/tripQueries";
+import { toTripInput, type Trip } from "../../services/tripService";
 import { TripLoadError } from "./TripFormPage";
 import InviteeList from "./InviteeList";
 import ShareTripDialog from "./ShareTripDialog";
@@ -48,6 +49,22 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
   const days = tripLengthInDays(trip.startDate, trip.endDate);
   const length = `${days} ${days === 1 ? "day" : "days"}`;
   const travellers = formatTravellers(trip.travellers);
+  const notify = useNotify();
+  const updateTrip = useUpdateTrip(trip.tripId);
+  // The API returns invites as a set (no order); alphabetical keeps the list stable.
+  const invitees = [...trip.invitedEmails].sort();
+
+  // Removing is a normal trip update with that email left out. No confirmation: it's easy
+  // to undo by inviting them again.
+  const removeInvite = (email: string) => {
+    updateTrip.mutate(
+      { ...toTripInput(trip), invitedEmails: trip.invitedEmails.filter((e) => e !== email) },
+      {
+        onSuccess: () => notify.success(`Removed ${email}`),
+        onError: (error) => notify.error(error.message || "Couldn't remove the invite. Please try again."),
+      },
+    );
+  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -149,7 +166,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
               <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 1.5 }}>
                 Saved with the trip. Invites aren't sent yet: that comes with Shared trips.
               </Typography>
-              <InviteeList emails={trip.invitedEmails} />
+              <InviteeList emails={invitees} onRemove={removeInvite} disabled={updateTrip.isPending} />
             </>
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1.5 }}>
