@@ -8,6 +8,7 @@ import { ApiError } from "../../services/serviceWrapper";
 import { useTrip } from "../../services/tripQueries";
 import type { Trip } from "../../services/tripService";
 import { TripLoadError } from "./TripFormPage";
+import InviteeList from "./InviteeList";
 import TripStatusChip from "./TripStatusChip";
 
 const headerBadgeSx = { bgcolor: "brand.glass", color: "common.white", fontWeight: 600, fontSize: 12 };
@@ -99,9 +100,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
           <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 1.5 }}>
             Saved with the trip. Invites aren't sent yet: that comes with Shared trips.
           </Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {trip.invitedEmails.map((email) => <Chip key={email} label={email} variant="outlined" />)}
-          </Box>
+          <InviteeList emails={trip.invitedEmails} />
         </Box>
       )}
     </Box>

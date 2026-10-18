@@ -1,6 +1,7 @@
-import { Box, Button, Chip, TextField } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import { useState, type KeyboardEvent } from "react";
 import { EMAIL_PATTERN } from "../../common/tripUtils";
+import InviteeList from "./InviteeList";
 
 const MAX_INVITES = 20; // same limit as the backend
 
@@ -9,7 +10,7 @@ type InviteEmailsFieldProps = {
   onChange: (emails: string[]) => void;
 };
 
-// Type an email, press Enter or "Add", and it becomes a removable chip.
+// Type an email, press Enter or "Add", and it joins the list below with a remove button.
 const InviteEmailsField = ({ value, onChange }: InviteEmailsFieldProps) => {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -50,15 +51,9 @@ const InviteEmailsField = ({ value, onChange }: InviteEmailsFieldProps) => {
           helperText={error ?? "Saved with your trip. Invites aren't sent yet: that comes with Shared trips."}
           sx={{ flex: 1 }}
         />
-        <Button variant="outlined" onClick={add} sx={{ height: 56 }}>Add</Button>
+        <Button variant="outlined" onClick={add} sx={{ height: 46 }}>Add</Button>
       </Box>
-      {value.length > 0 && (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }} aria-label="Invited travellers">
-          {value.map((email) => (
-            <Chip key={email} label={email} onDelete={() => onChange(value.filter((e) => e !== email))} />
-          ))}
-        </Box>
-      )}
+      <InviteeList emails={value} onRemove={(email) => onChange(value.filter((e) => e !== email))} />
     </Box>
   );
 };
