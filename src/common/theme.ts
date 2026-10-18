@@ -126,16 +126,25 @@ export const theme = createTheme({
     },
     // Date pickers render their own field (not OutlinedInput). The outlined variant sets the
     // padding on its sections container, so the override has to come from its root.
-    MuiPickersInputBase: {
-      // Picker fields default to body1's letter spacing, which made dates look larger.
-      styleOverrides: { root: { fontSize: 14, letterSpacing: "normal" } },
-    },
     MuiPickersOutlinedInput: {
       styleOverrides: {
         root: {
           borderRadius: 11,
           "& .MuiPickersInputBase-sectionsContainer": { paddingTop: 13, paddingBottom: 13 },
         },
+      },
+    },
+    // The calendar button inside date fields uses the primary indigo (MUI default: grey).
+    MuiPickersInputBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontSize: 14,
+          letterSpacing: "normal", // body1's spacing made dates look larger than other values
+          "& .MuiInputAdornment-root .MuiIconButton-root": {
+            color: theme.palette.primary.main,
+            "&:hover": { backgroundColor: theme.palette.brand.soft },
+          },
+        }),
       },
     },
     // Today's date in the calendar uses the theme's primary colour instead of grey.
