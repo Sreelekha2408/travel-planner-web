@@ -139,7 +139,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
 
         <Box sx={cardSx}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: 0.5 }}>
-            <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700 }}>✉️ Invited travellers</Typography>
+            <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700 }}>🧑‍🤝‍🧑 Invited travellers</Typography>
             {trip.invitedEmails.length > 0 && (
               <Button size="small" onClick={() => setShareOpen(true)}>Manage</Button>
             )}

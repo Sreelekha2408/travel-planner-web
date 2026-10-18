@@ -151,6 +151,7 @@ describe("tripEmoji", () => {
   it("uses the highest-priority trip type's emoji, whatever order the types come in", () => {
     expect(tripEmoji({ tripTypes: ["FOOD_AND_DRINK", "BEACH"] })).toBe("🏖️");
     expect(tripEmoji({ tripTypes: ["RELAXING", "CULTURE"] })).toBe("🏛️");
+    expect(tripEmoji({ tripTypes: ["FOOD_AND_DRINK", "RELAXING"] })).toBe("🧘");
   });
 
   it("falls back to a plane when no trip type is set", () => {
