@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Trip } from "../services/tripService";
 import {
+  colorIndex,
   destinationCode,
   formatBudget,
   formatTravellers,
@@ -171,5 +172,21 @@ describe("destinationCode", () => {
   it("takes the first three letters, ignoring spaces and punctuation", () => {
     expect(destinationCode("Bali, Indonesia")).toBe("BAL");
     expect(destinationCode("St. Lucia")).toBe("STL");
+  });
+});
+
+describe("colorIndex", () => {
+  it("gives the same string the same bucket, always within range", () => {
+    expect(colorIndex("maya@example.test", 8)).toBe(colorIndex("maya@example.test", 8));
+    for (const email of ["a@b.co", "sam@example.test", "x".repeat(200)]) {
+      const index = colorIndex(email, 8);
+      expect(index).toBeGreaterThanOrEqual(0);
+      expect(index).toBeLessThan(8);
+    }
+  });
+
+  it("spreads different strings across buckets", () => {
+    const emails = ["maya@x.test", "sam@x.test", "priya@x.test", "tom@x.test", "li@x.test", "ana@x.test"];
+    expect(new Set(emails.map((email) => colorIndex(email, 8))).size).toBeGreaterThan(1);
   });
 });

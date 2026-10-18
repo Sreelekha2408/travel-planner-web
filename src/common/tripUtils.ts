@@ -186,3 +186,11 @@ export const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 export function destinationCode(destination: string): string {
   return destination.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase();
 }
+
+// A stable bucket in [0, count) for a string, e.g. an avatar colour per email: the same
+// email always gets the same colour, on every page and after a reload.
+export function colorIndex(key: string, count: number): number {
+  let hash = 0;
+  for (const char of key) hash = (hash * 31 + char.codePointAt(0)!) | 0; // | 0 keeps it a 32-bit int
+  return Math.abs(hash) % count;
+}

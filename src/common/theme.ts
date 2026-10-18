@@ -50,6 +50,19 @@ export const activityColors = {
   food: { icon: "#B85C00", tile: "#FFF3E0" },
 };
 
+// Avatar colours for people (invitees): a light tint with a dark letter, each pair above
+// 4.5:1 contrast. Which pair a person gets comes from colorIndex() in tripUtils.
+export const avatarColors = [
+  { bg: "#E8EAF6", fg: "#283593" }, // indigo
+  { bg: "#E0F2F1", fg: "#00695C" }, // teal
+  { bg: "#FCE4EC", fg: "#AD1457" }, // pink
+  { bg: "#FFF3E0", fg: "#9A4A00" }, // amber
+  { bg: "#E3F2FD", fg: "#1565C0" }, // blue
+  { bg: "#F3E5F5", fg: "#6A1B9A" }, // purple
+  { bg: "#E8F5E9", fg: "#2E7D32" }, // green
+  { bg: "#FBE9E7", fg: "#BF360C" }, // deep orange
+];
+
 const base = createTheme();
 
 export const theme = createTheme({
