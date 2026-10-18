@@ -40,16 +40,15 @@ const DetailRow = ({ emoji, label, children }: { emoji: string; label: string; c
 
 const cardSx = { bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 2.75 };
 
-// The design's 36px squares in the top-right corner: white tiles with dark indigo icons,
-// which stay clear on the indigo header.
+// The design's 36px squares in the top-right corner: dark indigo icons on a soft,
+// mostly-white tile (a little of the header shows through), solid white on hover.
 const headerIconButtonSx = {
   width: 36,
   height: 36,
   borderRadius: 2.5,
   color: "primary.dark",
-  bgcolor: "common.white",
-  boxShadow: "0 2px 6px rgba(26, 35, 126, 0.25)",
-  "&:hover": { bgcolor: "brand.soft" },
+  bgcolor: "rgba(255, 255, 255, 0.75)",
+  "&:hover": { bgcolor: "common.white" },
 };
 
 const TripDetail = ({ trip }: { trip: Trip }) => {
