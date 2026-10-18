@@ -116,6 +116,10 @@ export const theme = createTheme({
         input: { paddingTop: 13, paddingBottom: 13 },
       },
     },
+    // Helper and error text lines up with the field's left edge (MUI indents it 14px).
+    MuiFormHelperText: {
+      styleOverrides: { root: { marginLeft: 0, marginRight: 0 } },
+    },
     MuiInputLabel: {
       styleOverrides: {
         root: { fontSize: 14 },
