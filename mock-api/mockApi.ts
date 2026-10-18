@@ -206,7 +206,7 @@ async function handleTrips(
     if (error) return reply(400, { message: error });
     const trip: MockTrip = {
       ...(body as MockTrip),
-      currency: body?.currency ?? "USD",
+      currency: body?.currency ?? "INR",
       tripTypes: body?.tripTypes ?? [],
       invitedEmails: body?.invitedEmails ?? [],
       tripId: nextTripId++,

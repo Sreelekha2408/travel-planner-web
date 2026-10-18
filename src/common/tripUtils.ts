@@ -26,10 +26,10 @@ export function tripLengthInDays(startDate: string, endDate: string): number {
 
 // Currencies offered for a trip budget (ISO 4217 codes, sent to the backend as-is).
 export const currencyOptions: { code: string; label: string }[] = [
+  { code: "INR", label: "Indian rupee" },
   { code: "USD", label: "US dollar" },
   { code: "EUR", label: "Euro" },
   { code: "GBP", label: "British pound" },
-  { code: "INR", label: "Indian rupee" },
   { code: "JPY", label: "Japanese yen" },
   { code: "AUD", label: "Australian dollar" },
   { code: "CAD", label: "Canadian dollar" },
@@ -37,7 +37,7 @@ export const currencyOptions: { code: string; label: string }[] = [
   { code: "AED", label: "UAE dirham" },
 ];
 
-export const DEFAULT_CURRENCY = "USD";
+export const DEFAULT_CURRENCY = "INR";
 
 // "$", "₹", "€", "£", "¥", and "A$" / "CA$" for dollars that would otherwise look the same.
 // Comes from Intl, so no hand-maintained symbol table.

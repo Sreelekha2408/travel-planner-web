@@ -78,11 +78,11 @@ describe("formatTravellers", () => {
 });
 
 describe("formatBudget", () => {
-  it("uses the trip's currency symbol, with USD for trips saved without one", () => {
+  it("uses the trip's currency symbol, with INR for trips saved without one", () => {
     expect(formatBudget(3000, "USD")).toBe("$3,000");
     expect(formatBudget(3000, "INR")).toBe("₹3,000");
     expect(formatBudget(3000, "EUR")).toBe("€3,000");
-    expect(formatBudget(3000, null)).toBe("$3,000");
+    expect(formatBudget(3000, null)).toBe("₹3,000");
     expect(formatBudget(null, "EUR")).toBe("No budget set");
   });
 });

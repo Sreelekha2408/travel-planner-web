@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, TextField, Typography } from "@mui/material";
 import AccountBalanceWalletOutlined from "@mui/icons-material/AccountBalanceWalletOutlined";
 import EventOutlined from "@mui/icons-material/EventOutlined";
 import GroupOutlined from "@mui/icons-material/GroupOutlined";
@@ -6,13 +6,11 @@ import LocalOfferOutlined from "@mui/icons-material/LocalOfferOutlined";
 import PlaceOutlined from "@mui/icons-material/PlaceOutlined";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
-import { gradients } from "../../common/theme";
+import { gradients, summaryIconColors } from "../../common/theme";
 import {
-  currencyOptions,
-  currencySymbol,
   DEFAULT_CURRENCY,
   formatBudget,
   formatDateRange,
@@ -23,6 +21,7 @@ import {
 } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import type { Trip, TripInput, TripType } from "../../services/tripService";
+import CurrencyPicker from "./CurrencyPicker";
 import InviteEmailsField from "./InviteEmailsField";
 
 // Form state differs from the API shape: pickers hold Dayjs objects and inputs hold strings.
@@ -77,11 +76,17 @@ function getSaveErrorMessage(error: unknown): string {
   return error.message; // e.g. the backend's 400 "End date must be on or after the start date"
 }
 
-// One line of the summary card: muted icon and label, value in white.
-// Rendered as <dt>/<dd> inside a <dl>, the semantic element for label–value pairs.
-const SummaryRow = ({ icon, label, value }: { icon: ReactNode; label: string; value: string }) => (
-  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.25 }}>
-    <Box sx={{ color: "brand.onDark", display: "flex", mt: 0.25, "& svg": { fontSize: 18 } }}>{icon}</Box>
+// One line of the summary card: a coloured icon tile, a muted label and
+// the value in white. Rendered as <dt>/<dd> inside a <dl>, the semantic element for
+// label–value pairs.
+const SummaryRow = ({ icon, color, label, value }: { icon: ReactNode; color: { tile: string; icon: string }; label: string; value: string }) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+    <Box
+      aria-hidden
+      sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: color.tile, color: color.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, "& svg": { fontSize: 18 } }}
+    >
+      {icon}
+    </Box>
     <Box sx={{ minWidth: 0 }}>
       <Typography component="dt" sx={{ fontSize: 11, fontWeight: 600, color: "brand.onDark" }}>{label}</Typography>
       <Typography component="dd" sx={{ m: 0, fontSize: 14, fontWeight: 600, color: "common.white" }}>{value}</Typography>
@@ -121,6 +126,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
   // register() returns a ref that, on a MUI TextField, lands on the wrapper; react-hook-form
   // then binds to the first <input> inside it. The budget field has the currency Select's
   // hidden input first, so its ref goes straight to the real input via inputRef instead.
+  const budgetFieldRef = useRef<HTMLDivElement>(null); // anchor for the currency menu
   const { ref: budgetRef, ...budgetField } = register("budget", {
     validate: (value) => value === "" || Number(value) >= 0 || "Budget can't be negative",
   });
@@ -279,21 +285,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
                       name="currency"
                       control={control}
                       render={({ field }) => (
-                        <Select
-                          {...field}
-                          variant="standard"
-                          disableUnderline
-                          inputProps={{ "aria-label": "Currency" }}
-                          renderValue={(code) => currencySymbol(code)} // "$", "₹", "€" in the field
-                          sx={{ fontSize: 14, fontWeight: 600, "& .MuiSelect-select": { py: 0 } }}
-                        >
-                          {currencyOptions.map((option) => (
-                            <MenuItem key={option.code} value={option.code} sx={{ fontSize: 14, gap: 1.25 }}>
-                              <Box component="span" sx={{ minWidth: 32, fontWeight: 700 }}>{currencySymbol(option.code)}</Box>
-                              {option.label} ({option.code})
-                            </MenuItem>
-                          ))}
-                        </Select>
+                        <CurrencyPicker value={field.value} onChange={field.onChange} anchorRef={budgetFieldRef} />
                       )}
                     />
                   </InputAdornment>
@@ -302,6 +294,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
               htmlInput: { min: 0, step: 1, inputMode: "decimal" },
             }}
             {...budgetField}
+            ref={budgetFieldRef}
             inputRef={budgetRef}
           />
         </Box>
@@ -370,14 +363,14 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
             </Typography>
           ) : null}
           <Box component="dl" sx={{ m: 0, display: "flex", flexDirection: "column", gap: 1.25 }}>
-            {destination.trim() && <SummaryRow icon={<PlaceOutlined />} label="Destination" value={destination.trim()} />}
-            {summaryDates && <SummaryRow icon={<EventOutlined />} label="Dates" value={summaryDates} />}
+            {destination.trim() && <SummaryRow icon={<PlaceOutlined />} color={summaryIconColors.destination} label="Destination" value={destination.trim()} />}
+            {summaryDates && <SummaryRow icon={<EventOutlined />} color={summaryIconColors.dates} label="Dates" value={summaryDates} />}
             {budget !== "" && Number(budget) >= 0 && (
-              <SummaryRow icon={<AccountBalanceWalletOutlined />} label="Budget" value={formatBudget(Number(budget), currency)} />
+              <SummaryRow icon={<AccountBalanceWalletOutlined />} color={summaryIconColors.budget} label="Budget" value={formatBudget(Number(budget), currency)} />
             )}
-            <SummaryRow icon={<GroupOutlined />} label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
+            <SummaryRow icon={<GroupOutlined />} color={summaryIconColors.travellers} label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
             {tripTypes.length > 0 && (
-              <SummaryRow icon={<LocalOfferOutlined />} label="Trip type" value={tripTypes.map(tripTypeLabel).join(" · ")} />
+              <SummaryRow icon={<LocalOfferOutlined />} color={summaryIconColors.tripType} label="Trip type" value={tripTypes.map(tripTypeLabel).join(" · ")} />
             )}
           </Box>
         </Box>
