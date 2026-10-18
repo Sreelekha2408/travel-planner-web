@@ -4,7 +4,7 @@ import { NotificationContext } from "./useNotify";
 
 type Toast = { id: number; message: string; severity: "success" | "error" };
 
-// Shows one toast at a time at the bottom centre; a new one replaces the current one.
+// Shows one toast at a time in the top-right corner; a new one replaces the current one.
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -33,7 +33,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         onClose={(_, reason) => {
           if (reason !== "clickaway") close(); // clicking elsewhere on the page shouldn't dismiss it
         }}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         {/* Alert has role="alert", so screen readers announce the message. */}
         <Alert onClose={close} severity={toast?.severity ?? "success"} variant="filled" sx={{ minWidth: 280, borderRadius: 3, boxShadow: 4 }}>

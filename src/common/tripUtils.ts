@@ -78,7 +78,7 @@ export const tripTypeOptions: { value: TripType; label: string; emoji: string }[
   { value: "RELAXING", label: "Relaxing", emoji: "🧘" },
   { value: "ADVENTURE", label: "Adventure", emoji: "🧗" },
   { value: "CULTURE", label: "Culture", emoji: "🏛️" },
-  { value: "FOOD_AND_DRINK", label: "Food and drink", emoji: "🍜" },
+  { value: "FOOD_AND_DRINK", label: "Food and drink", emoji: "🍽️" },
   { value: "BEACH", label: "Beach", emoji: "🏖️" },
   { value: "CITY_BREAK", label: "City break", emoji: "🏙️" },
   { value: "NATURE", label: "Nature", emoji: "🌿" },

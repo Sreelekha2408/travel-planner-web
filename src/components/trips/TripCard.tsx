@@ -108,7 +108,7 @@ const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }} // opens under the ⋯ button, right-aligned
-        slotProps={{ paper: { sx: { minWidth: 168 } } }}
+        slotProps={{ paper: { sx: { minWidth: 120 } } }}
       >
         <MenuItem onClick={() => { closeMenu(); onEdit(trip); }}>
           <ListItemIcon><EditOutlined fontSize="small" /></ListItemIcon>
