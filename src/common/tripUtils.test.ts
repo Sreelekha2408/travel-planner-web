@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Trip } from "../services/tripService";
-import { destinationCode, formatTravellers, getTripStatus, sortTrips, tripLengthInDays } from "./tripUtils";
+import { destinationCode, formatBudget, formatTravellers, getTripStatus, sortTrips, tripLengthInDays } from "./tripUtils";
 
 const today = "2026-10-18";
 
@@ -13,6 +13,7 @@ function trip(tripId: number, startDate: string, endDate: string): Trip {
     startDate,
     endDate,
     budget: null,
+    currency: null,
     travellers: null,
     tripTypes: [],
     invitedEmails: [],
@@ -73,6 +74,16 @@ describe("formatTravellers", () => {
     [8, "5 or more travellers"],
   ])("formats %s as %s", (input, expected) => {
     expect(formatTravellers(input)).toBe(expected);
+  });
+});
+
+describe("formatBudget", () => {
+  it("uses the trip's currency symbol, with USD for trips saved without one", () => {
+    expect(formatBudget(3000, "USD")).toBe("$3,000");
+    expect(formatBudget(3000, "INR")).toBe("₹3,000");
+    expect(formatBudget(3000, "EUR")).toBe("€3,000");
+    expect(formatBudget(3000, null)).toBe("$3,000");
+    expect(formatBudget(null, "EUR")).toBe("No budget set");
   });
 });
 

@@ -37,6 +37,7 @@ type MockTrip = {
   startDate: string;
   endDate: string;
   budget: number | null;
+  currency: string | null;
   travellers: number | null;
   tripTypes: string[];
   invitedEmails: string[];
@@ -54,9 +55,9 @@ function daysFromToday(n: number) {
 // Sample data from the design. Resets when the dev server restarts.
 let nextTripId = 4;
 const trips: MockTrip[] = [
-  { tripId: 1, title: "Bali Escape", source: "Singapore", destination: "Bali, Indonesia", startDate: daysFromToday(63), endDate: daysFromToday(73), budget: 3000, travellers: 2, tripTypes: ["RELAXING", "BEACH"], invitedEmails: ["arjun@example.test"], createdBy: null, createdOn: null },
-  { tripId: 2, title: "Paris Getaway", source: "London", destination: "Paris, France", startDate: daysFromToday(-2), endDate: daysFromToday(5), budget: 2200, travellers: 2, tripTypes: ["CULTURE", "FOOD_AND_DRINK"], invitedEmails: [], createdBy: null, createdOn: null },
-  { tripId: 3, title: "Tokyo Adventure", source: null, destination: "Tokyo, Japan", startDate: daysFromToday(-220), endDate: daysFromToday(-211), budget: 4500, travellers: 3, tripTypes: ["ADVENTURE", "CITY_BREAK"], invitedEmails: [], createdBy: null, createdOn: null },
+  { tripId: 1, title: "Bali Escape", source: "Singapore", destination: "Bali, Indonesia", startDate: daysFromToday(63), endDate: daysFromToday(73), budget: 3000, currency: "USD", travellers: 2, tripTypes: ["RELAXING", "BEACH"], invitedEmails: ["arjun@example.test"], createdBy: null, createdOn: null },
+  { tripId: 2, title: "Paris Getaway", source: "London", destination: "Paris, France", startDate: daysFromToday(-2), endDate: daysFromToday(5), budget: 2200, currency: "EUR", travellers: 2, tripTypes: ["CULTURE", "FOOD_AND_DRINK"], invitedEmails: [], createdBy: null, createdOn: null },
+  { tripId: 3, title: "Tokyo Adventure", source: null, destination: "Tokyo, Japan", startDate: daysFromToday(-220), endDate: daysFromToday(-211), budget: 4500, currency: "JPY", travellers: 3, tripTypes: ["ADVENTURE", "CITY_BREAK"], invitedEmails: [], createdBy: null, createdOn: null },
 ];
 
 function parseCookies(req: IncomingMessage): Record<string, string> {
@@ -185,6 +186,7 @@ function validateTrip(body: Partial<MockTrip> | undefined): string | null {
   if (!body.startDate || !body.endDate) return "Start and end dates are required";
   if (body.endDate < body.startDate) return "End date must be on or after the start date";
   if (body.budget != null && body.budget < 0) return "Budget can't be negative";
+  if (body.currency != null && !/^[A-Z]{3}$/.test(body.currency)) return "Currency must be a 3-letter code like USD";
   if (body.travellers != null && (body.travellers < 1 || body.travellers > 50)) return "Travellers must be between 1 and 50";
   if ((body.invitedEmails?.length ?? 0) > 20) return "You can invite up to 20 people";
   return null;
@@ -204,6 +206,7 @@ async function handleTrips(
     if (error) return reply(400, { message: error });
     const trip: MockTrip = {
       ...(body as MockTrip),
+      currency: body?.currency ?? "USD",
       tripTypes: body?.tripTypes ?? [],
       invitedEmails: body?.invitedEmails ?? [],
       tripId: nextTripId++,

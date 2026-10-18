@@ -1,10 +1,19 @@
-import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
 import { gradients } from "../../common/theme";
-import { formatBudget, formatDateRange, formatTravellers, tripLengthInDays, tripTypeLabel, tripTypeOptions } from "../../common/tripUtils";
+import {
+  currencyOptions,
+  DEFAULT_CURRENCY,
+  formatBudget,
+  formatDateRange,
+  formatTravellers,
+  tripLengthInDays,
+  tripTypeLabel,
+  tripTypeOptions,
+} from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import type { Trip, TripInput, TripType } from "../../services/tripService";
 import InviteEmailsField from "./InviteEmailsField";
@@ -18,6 +27,7 @@ type TripFormValues = {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   budget: string;
+  currency: string;
   travellers: string; // "1".."5" from the select
   tripTypes: TripType[];
   invitedEmails: string[];
@@ -31,6 +41,7 @@ function toFormValues(trip?: Trip): TripFormValues {
     startDate: trip ? dayjs(trip.startDate) : null,
     endDate: trip ? dayjs(trip.endDate) : null,
     budget: trip?.budget != null ? String(trip.budget) : "",
+    currency: trip?.currency ?? DEFAULT_CURRENCY,
     travellers: trip?.travellers != null ? String(Math.min(trip.travellers, 5)) : "1",
     tripTypes: trip?.tripTypes ?? [],
     invitedEmails: trip?.invitedEmails ?? [],
@@ -46,6 +57,7 @@ function toTripInput(values: TripFormValues): TripInput {
     startDate: values.startDate!.format("YYYY-MM-DD"),
     endDate: values.endDate!.format("YYYY-MM-DD"),
     budget: values.budget === "" ? null : Number(values.budget),
+    currency: values.currency,
     travellers: Number(values.travellers),
     tripTypes: values.tripTypes,
     invitedEmails: values.invitedEmails,
@@ -75,9 +87,9 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
   } = useForm<TripFormValues>({ defaultValues: toFormValues(trip) });
 
   // Drives the live "Trip summary" card.
-  const [title, destination, startDate, endDate, budget, travellers, tripTypes] = useWatch({
+  const [title, destination, startDate, endDate, budget, currency, travellers, tripTypes] = useWatch({
     control,
-    name: ["title", "destination", "startDate", "endDate", "budget", "travellers", "tripTypes"],
+    name: ["title", "destination", "startDate", "endDate", "budget", "currency", "travellers", "tripTypes"],
   });
   const summaryDates =
     startDate?.isValid() && endDate?.isValid() && !endDate.isBefore(startDate, "day")
@@ -86,6 +98,13 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
           endDate.format("YYYY-MM-DD"),
         )} days`
       : null;
+
+  // register() returns a ref that, on a MUI TextField, lands on the wrapper; react-hook-form
+  // then binds to the first <input> inside it. The budget field has the currency Select's
+  // hidden input first, so its ref goes straight to the real input via inputRef instead.
+  const { ref: budgetRef, ...budgetField } = register("budget", {
+    validate: (value) => value === "" || Number(value) >= 0 || "Budget can't be negative",
+  });
 
   const submit = async (values: TripFormValues) => {
     try {
@@ -226,19 +245,44 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
           />
           <TextField
             id="trip-budget"
-            label="Total budget (USD)"
+            label="Total budget"
             type="number"
             placeholder="3000"
             sx={{ flex: "1 1 180px" }}
             error={!!errors.budget}
             helperText={errors.budget?.message ?? "Optional"}
             slotProps={{
-              input: { startAdornment: <InputAdornment position="start">$</InputAdornment> },
+              input: {
+                // Currency picker inside the field, in place of a fixed "$".
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Controller
+                      name="currency"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          variant="standard"
+                          disableUnderline
+                          inputProps={{ "aria-label": "Currency" }}
+                          renderValue={(code) => code} // compact "USD" in the field; full names in the menu
+                          sx={{ fontSize: 14, fontWeight: 600, "& .MuiSelect-select": { py: 0 } }}
+                        >
+                          {currencyOptions.map((option) => (
+                            <MenuItem key={option.code} value={option.code}>
+                              {option.code} · {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                  </InputAdornment>
+                ),
+              },
               htmlInput: { min: 0, step: 1, inputMode: "decimal" },
             }}
-            {...register("budget", {
-              validate: (value) => value === "" || Number(value) >= 0 || "Budget can't be negative",
-            })}
+            {...budgetField}
+            inputRef={budgetRef}
           />
         </Box>
 
@@ -305,7 +349,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
           </Typography>
           {summaryDates && <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>{summaryDates}</Typography>}
           {budget !== "" && Number(budget) >= 0 && (
-            <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>Budget {formatBudget(Number(budget))}</Typography>
+            <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>Budget {formatBudget(Number(budget), currency)}</Typography>
           )}
           <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>{formatTravellers(Number(travellers))}</Typography>
           {tripTypes.length > 0 && (

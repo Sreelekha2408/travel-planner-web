@@ -13,6 +13,7 @@ export type Trip = {
   startDate: string;
   endDate: string;
   budget: number | null;
+  currency: string | null; // ISO 4217 code; null on trips saved before currencies existed (= USD)
   travellers: number | null;
   tripTypes: TripType[];
   invitedEmails: string[]; // saved only; sending invites comes with Shared trips
@@ -28,6 +29,7 @@ export type TripInput = {
   startDate: string;
   endDate: string;
   budget: number | null;
+  currency: string;
   travellers: number | null;
   tripTypes: TripType[];
   invitedEmails: string[];

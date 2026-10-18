@@ -24,10 +24,34 @@ export function tripLengthInDays(startDate: string, endDate: string): number {
   return dayjs(endDate).diff(dayjs(startDate), "day") + 1;
 }
 
-const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+// Currencies offered for a trip budget (ISO 4217 codes, sent to the backend as-is).
+export const currencyOptions: { code: string; label: string }[] = [
+  { code: "USD", label: "US dollar" },
+  { code: "EUR", label: "Euro" },
+  { code: "GBP", label: "British pound" },
+  { code: "INR", label: "Indian rupee" },
+  { code: "JPY", label: "Japanese yen" },
+  { code: "AUD", label: "Australian dollar" },
+  { code: "CAD", label: "Canadian dollar" },
+  { code: "SGD", label: "Singapore dollar" },
+  { code: "AED", label: "UAE dirham" },
+];
 
-export function formatBudget(budget: number | null): string {
-  return budget == null ? "No budget set" : currency.format(budget);
+export const DEFAULT_CURRENCY = "USD";
+
+// Intl.NumberFormat picks the right symbol and grouping (e.g. $3,000, ₹3,000, €3,000).
+// Formatters are cached because creating them is relatively expensive.
+const formatters = new Map<string, Intl.NumberFormat>();
+
+export function formatBudget(budget: number | null, currency: string | null = DEFAULT_CURRENCY): string {
+  if (budget == null) return "No budget set";
+  const code = currency ?? DEFAULT_CURRENCY;
+  let formatter = formatters.get(code);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", { style: "currency", currency: code, maximumFractionDigits: 0 });
+    formatters.set(code, formatter);
+  }
+  return formatter.format(budget);
 }
 
 // Ongoing first, then upcoming (soonest first), then completed (most recent first).

@@ -44,7 +44,7 @@ const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
           <Typography component="div" sx={{ display: "flex", flexWrap: "wrap", columnGap: 1.75, rowGap: 0.5, mt: 1.25, fontSize: 12, color: "brand.nav" }}>
             <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
             {travellers && <span>{travellers}</span>}
-            <span>{formatBudget(trip.budget)}</span>
+            <span>{formatBudget(trip.budget, trip.currency)}</span>
           </Typography>
         </Box>
       </CardActionArea>

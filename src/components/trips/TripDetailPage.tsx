@@ -52,7 +52,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
           </Typography>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             <Chip label={trip.destination} size="small" sx={headerBadgeSx} />
-            <Chip label={`Budget ${formatBudget(trip.budget)}`} size="small" sx={headerBadgeSx} />
+            <Chip label={`Budget ${formatBudget(trip.budget, trip.currency)}`} size="small" sx={headerBadgeSx} />
           </Box>
         </Box>
         <Button
@@ -79,7 +79,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
         <DetailRow label="Destination" value={trip.destination} />
         <DetailRow label="Dates" value={formatDateRange(trip.startDate, trip.endDate)} />
         <DetailRow label="Length" value={`${days} ${days === 1 ? "day" : "days"}`} />
-        <DetailRow label="Budget" value={formatBudget(trip.budget)} />
+        <DetailRow label="Budget" value={formatBudget(trip.budget, trip.currency)} />
         <DetailRow label="Travellers" value={formatTravellers(trip.travellers) ?? "Not set"} />
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, py: 1.25 }}>
           <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Trip type</Typography>
