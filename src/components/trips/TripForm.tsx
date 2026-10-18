@@ -1,15 +1,10 @@
 import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, TextField, Typography } from "@mui/material";
-import AccountBalanceWalletOutlined from "@mui/icons-material/AccountBalanceWalletOutlined";
-import EventOutlined from "@mui/icons-material/EventOutlined";
-import GroupOutlined from "@mui/icons-material/GroupOutlined";
-import LocalOfferOutlined from "@mui/icons-material/LocalOfferOutlined";
-import PlaceOutlined from "@mui/icons-material/PlaceOutlined";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
-import { useRef, type ReactNode } from "react";
+import { useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
-import { gradients, summaryIconColors } from "../../common/theme";
+import { gradients } from "../../common/theme";
 import {
   DEFAULT_CURRENCY,
   formatBudget,
@@ -76,16 +71,13 @@ function getSaveErrorMessage(error: unknown): string {
   return error.message; // e.g. the backend's 400 "End date must be on or after the start date"
 }
 
-// One line of the summary card: a coloured icon tile, a muted label and
-// the value in white. Rendered as <dt>/<dd> inside a <dl>, the semantic element for
-// label–value pairs.
-const SummaryRow = ({ icon, color, label, value }: { icon: ReactNode; color: { tile: string; icon: string }; label: string; value: string }) => (
+// One line of the summary card: an emoji, a muted label and the value in white.
+// Rendered as <dt>/<dd> inside a <dl>, the semantic element for label–value pairs.
+// The emoji is decorative (aria-hidden): the label already says what the row is.
+const SummaryRow = ({ emoji, label, value }: { emoji: string; label: string; value: string }) => (
   <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-    <Box
-      aria-hidden
-      sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: color.tile, color: color.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, "& svg": { fontSize: 18 } }}
-    >
-      {icon}
+    <Box component="span" aria-hidden sx={{ fontSize: 18, lineHeight: 1, width: 22, textAlign: "center", flexShrink: 0 }}>
+      {emoji}
     </Box>
     <Box sx={{ minWidth: 0 }}>
       <Typography component="dt" sx={{ fontSize: 11, fontWeight: 600, color: "brand.onDark" }}>{label}</Typography>
@@ -363,14 +355,14 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
             </Typography>
           ) : null}
           <Box component="dl" sx={{ m: 0, display: "flex", flexDirection: "column", gap: 1.25 }}>
-            {destination.trim() && <SummaryRow icon={<PlaceOutlined />} color={summaryIconColors.destination} label="Destination" value={destination.trim()} />}
-            {summaryDates && <SummaryRow icon={<EventOutlined />} color={summaryIconColors.dates} label="Dates" value={summaryDates} />}
+            {destination.trim() && <SummaryRow emoji="📍" label="Destination" value={destination.trim()} />}
+            {summaryDates && <SummaryRow emoji="📅" label="Dates" value={summaryDates} />}
             {budget !== "" && Number(budget) >= 0 && (
-              <SummaryRow icon={<AccountBalanceWalletOutlined />} color={summaryIconColors.budget} label="Budget" value={formatBudget(Number(budget), currency)} />
+              <SummaryRow emoji="💰" label="Budget" value={formatBudget(Number(budget), currency)} />
             )}
-            <SummaryRow icon={<GroupOutlined />} color={summaryIconColors.travellers} label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
+            <SummaryRow emoji="👥" label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
             {tripTypes.length > 0 && (
-              <SummaryRow icon={<LocalOfferOutlined />} color={summaryIconColors.tripType} label="Trip type" value={tripTypes.map(tripTypeLabel).join(" · ")} />
+              <SummaryRow emoji="🏷️" label="Trip type" value={tripTypes.map(tripTypeLabel).join(" · ")} />
             )}
           </Box>
         </Box>

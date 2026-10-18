@@ -50,16 +50,6 @@ export const activityColors = {
   food: { icon: "#B85C00", tile: "#FFF3E0" },
 };
 
-// Icon tiles for the trip summary card: a solid pastel tile with the icon in a deep shade
-// of the same hue, one colour per detail so the rows stand out on the indigo gradient.
-export const summaryIconColors = {
-  destination: { tile: "#FFCCBC", icon: "#BF360C" },
-  dates: { tile: "#BBDEFB", icon: "#0D47A1" },
-  budget: { tile: "#C8E6C9", icon: "#1B5E20" },
-  travellers: { tile: "#FFECB3", icon: "#7A5B00" },
-  tripType: { tile: "#F8BBD0", icon: "#880E4F" },
-};
-
 const base = createTheme();
 
 export const theme = createTheme({
