@@ -72,19 +72,54 @@ export function sortTrips(trips: Trip[]): Trip[] {
   });
 }
 
-// Chip labels for the "What kind of trip is it?" field, in the design's order.
-export const tripTypeOptions: { value: TripType; label: string }[] = [
-  { value: "RELAXING", label: "Relaxing" },
-  { value: "ADVENTURE", label: "Adventure" },
-  { value: "CULTURE", label: "Culture" },
-  { value: "FOOD_AND_DRINK", label: "Food and drink" },
-  { value: "BEACH", label: "Beach" },
-  { value: "CITY_BREAK", label: "City break" },
-  { value: "NATURE", label: "Nature" },
+// Trip types in the design's order, with the label and emoji used everywhere they appear
+// (form chips, summary card, trip detail page).
+export const tripTypeOptions: { value: TripType; label: string; emoji: string }[] = [
+  { value: "RELAXING", label: "Relaxing", emoji: "🧘" },
+  { value: "ADVENTURE", label: "Adventure", emoji: "🧗" },
+  { value: "CULTURE", label: "Culture", emoji: "🏛️" },
+  { value: "FOOD_AND_DRINK", label: "Food and drink", emoji: "🍜" },
+  { value: "BEACH", label: "Beach", emoji: "🏖️" },
+  { value: "CITY_BREAK", label: "City break", emoji: "🏙️" },
+  { value: "NATURE", label: "Nature", emoji: "🌿" },
 ];
 
 export function tripTypeLabel(type: TripType): string {
   return tripTypeOptions.find((option) => option.value === type)?.label ?? type;
+}
+
+// "🏖️ Beach"
+export function tripTypeWithEmoji(type: TripType): string {
+  const option = tripTypeOptions.find((o) => o.value === type);
+  return option ? `${option.emoji} ${option.label}` : type;
+}
+
+// The big emoji on the trip page: the first trip type's, or a plane when none is set.
+export function tripEmoji(trip: Pick<Trip, "tripTypes">): string {
+  const first = trip.tripTypes[0];
+  return tripTypeOptions.find((option) => option.value === first)?.emoji ?? "✈️";
+}
+
+// "3 days", "2 weeks", "4 months": coarse units for countdowns.
+function roughDuration(days: number): string {
+  if (days < 14) return `${days} ${days === 1 ? "day" : "days"}`;
+  if (days < 60) return `${Math.round(days / 7)} weeks`;
+  return `${Math.round(days / 30)} months`;
+}
+
+// "Starts in 5 days", "Day 3 of 9", "Ended 2 weeks ago", relative to `today` (yyyy-MM-dd).
+export function tripCountdown(trip: Pick<Trip, "startDate" | "endDate">, today = dayjs().format("YYYY-MM-DD")): string {
+  const now = dayjs(today);
+  const status = getTripStatus(trip, today);
+  if (status === "upcoming") {
+    const days = dayjs(trip.startDate).diff(now, "day");
+    return days === 1 ? "Starts tomorrow" : `Starts in ${roughDuration(days)}`;
+  }
+  if (status === "ongoing") {
+    return `Day ${now.diff(dayjs(trip.startDate), "day") + 1} of ${tripLengthInDays(trip.startDate, trip.endDate)}`;
+  }
+  const days = now.diff(dayjs(trip.endDate), "day");
+  return days === 1 ? "Ended yesterday" : `Ended ${roughDuration(days)} ago`;
 }
 
 // 1 -> "Just me", 2 -> "2 travellers", 5 -> "5 or more travellers".

@@ -11,7 +11,7 @@ import {
   formatDateRange,
   formatTravellers,
   tripLengthInDays,
-  tripTypeLabel,
+  tripTypeWithEmoji,
   tripTypeOptions,
 } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
@@ -311,7 +311,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
                   return (
                     <Chip
                       key={option.value}
-                      label={option.label}
+                      label={`${option.emoji} ${option.label}`}
                       clickable
                       color={selected ? "primary" : "default"}
                       variant={selected ? "filled" : "outlined"}
@@ -367,7 +367,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
             )}
             <SummaryRow emoji="👥" label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
             {tripTypes.length > 0 && (
-              <SummaryRow emoji="🏷️" label="Trip type" value={tripTypes.map(tripTypeLabel).join(" · ")} />
+              <SummaryRow emoji="🏷️" label="Trip type" value={tripTypes.map(tripTypeWithEmoji).join(" · ")} />
             )}
           </Box>
         </Box>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Trip } from "../services/tripService";
-import { destinationCode, formatBudget, formatTravellers, getTripStatus, sortTrips, tripLengthInDays } from "./tripUtils";
+import { destinationCode, formatBudget, formatTravellers, getTripStatus, sortTrips, tripCountdown, tripEmoji, tripLengthInDays } from "./tripUtils";
 
 const today = "2026-10-18";
 
@@ -84,6 +84,27 @@ describe("formatBudget", () => {
     expect(formatBudget(3000, "EUR")).toBe("€3,000");
     expect(formatBudget(3000, null)).toBe("₹3,000");
     expect(formatBudget(null, "EUR")).toBe("No budget set");
+  });
+});
+
+describe("tripCountdown", () => {
+  it.each([
+    ["2026-10-19", "2026-10-25", "Starts tomorrow"],
+    ["2026-10-23", "2026-10-31", "Starts in 5 days"],
+    ["2026-11-15", "2026-11-20", "Starts in 4 weeks"],
+    ["2026-10-18", "2026-10-26", "Day 1 of 9"],
+    ["2026-10-16", "2026-10-24", "Day 3 of 9"],
+    ["2026-10-10", "2026-10-17", "Ended yesterday"],
+    ["2026-09-01", "2026-09-28", "Ended 3 weeks ago"],
+  ])("%s to %s is '%s' on 2026-10-18", (startDate, endDate, expected) => {
+    expect(tripCountdown({ startDate, endDate }, today)).toBe(expected);
+  });
+});
+
+describe("tripEmoji", () => {
+  it("uses the first trip type's emoji, or a plane when there is none", () => {
+    expect(tripEmoji({ tripTypes: ["BEACH", "NATURE"] })).toBe("🏖️");
+    expect(tripEmoji({ tripTypes: [] })).toBe("✈️");
   });
 });
 
