@@ -172,11 +172,18 @@ export function tripCountdown(trip: Pick<Trip, "startDate" | "endDate">, today =
   return days === 1 ? "Ended yesterday" : `Ended ${roughDuration(days)} ago`;
 }
 
-// 1 -> "Just me", 2 -> "2 travellers", 5 -> "5 or more travellers".
+// Travellers is the trip's headcount; invites are the travellers who also use the app.
+// So the count can't be lower than you plus everyone invited (the backend checks too).
+export const MAX_TRAVELLERS = 50; // same limit as the backend
+
+export function minTravellers(inviteCount: number): number {
+  return 1 + inviteCount;
+}
+
+// 1 -> "Just me", 2 -> "2 travellers".
 export function formatTravellers(travellers: number | null): string | null {
   if (travellers == null) return null;
   if (travellers === 1) return "Just me";
-  if (travellers >= 5) return "5 or more travellers";
   return `${travellers} travellers`;
 }
 

@@ -7,13 +7,15 @@ import { Link as RouterLink, useBlocker } from "react-router-dom";
 import { gradients } from "../../common/theme";
 import {
   DEFAULT_CURRENCY,
+  MAX_TRAVELLERS,
   formatBudget,
   formatDateRange,
   formatTravellers,
+  minTravellers,
   sortTripTypes,
   tripLengthInDays,
-  tripTypeWithEmoji,
   tripTypeOptions,
+  tripTypeWithEmoji,
 } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import type { Trip, TripInput, TripType } from "../../services/tripService";
@@ -33,7 +35,7 @@ type TripFormValues = {
   endDate: Dayjs | null;
   budget: string;
   currency: string;
-  travellers: string; // "1".."5" from the select
+  travellers: string; // "1".."50" from the select
   tripTypes: TripType[];
   invitedEmails: string[];
 };
@@ -47,7 +49,8 @@ function toFormValues(trip?: Trip): TripFormValues {
     endDate: trip ? dayjs(trip.endDate) : null,
     budget: trip?.budget != null ? String(trip.budget) : "",
     currency: trip?.currency ?? DEFAULT_CURRENCY,
-    travellers: trip?.travellers != null ? String(Math.min(trip.travellers, 5)) : "1",
+    // Raised to the minimum for trips saved before the "you + invites" rule existed.
+    travellers: String(Math.max(trip?.travellers ?? 1, minTravellers(trip?.invitedEmails.length ?? 0))),
     tripTypes: trip?.tripTypes ?? [],
     invitedEmails: trip?.invitedEmails ?? [],
   };
@@ -103,6 +106,8 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
     control,
     handleSubmit,
     setError,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<TripFormValues>({ defaultValues: toFormValues(trip) });
 
@@ -279,13 +284,16 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
                 id="trip-travellers"
                 label="Travellers"
                 sx={{ flex: "1 1 180px" }}
+                helperText={invitedEmails.length > 0 ? `At least ${minTravellers(invitedEmails.length)}: you and ${invitedEmails.length} invited` : undefined}
+                slotProps={{ select: { MenuProps: { slotProps: { paper: { sx: { maxHeight: 320 } } } } } }}
                 {...field}
               >
-                <MenuItem value="1">Just me</MenuItem>
-                <MenuItem value="2">2 travellers</MenuItem>
-                <MenuItem value="3">3 travellers</MenuItem>
-                <MenuItem value="4">4 travellers</MenuItem>
-                <MenuItem value="5">5 or more</MenuItem>
+                {Array.from({ length: MAX_TRAVELLERS }, (_, i) => i + 1).map((count) => (
+                  // Counts below you + the people invited aren't allowed
+                  <MenuItem key={count} value={String(count)} disabled={count < minTravellers(invitedEmails.length)}>
+                    {formatTravellers(count)}
+                  </MenuItem>
+                ))}
               </TextField>
             )}
           />
@@ -356,7 +364,18 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
         <Controller
           name="invitedEmails"
           control={control}
-          render={({ field }) => <InviteEmailsField value={field.value} onChange={field.onChange} />}
+          render={({ field }) => (
+            <InviteEmailsField
+              value={field.value}
+              onChange={(emails) => {
+                field.onChange(emails);
+                // Inviting more people than the headcount raises it; removing doesn't lower
+                // it (they may still be coming, just not using the app).
+                const needed = minTravellers(emails.length);
+                if (Number(getValues("travellers")) < needed) setValue("travellers", String(needed), { shouldDirty: true });
+              }}
+            />
+          )}
         />
 
         {/* Sticks to the bottom of the screen so Save is always in reach, however long the

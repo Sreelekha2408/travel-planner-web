@@ -6,6 +6,7 @@ import {
   formatBudget,
   formatTravellers,
   getTripStatus,
+  minTravellers,
   sortTrips,
   sortTripTypes,
   tripCountdown,
@@ -82,10 +83,16 @@ describe("formatTravellers", () => {
     [null, null],
     [1, "Just me"],
     [3, "3 travellers"],
-    [5, "5 or more travellers"],
-    [8, "5 or more travellers"],
+    [8, "8 travellers"],
   ])("formats %s as %s", (input, expected) => {
     expect(formatTravellers(input)).toBe(expected);
+  });
+});
+
+describe("minTravellers", () => {
+  it("counts you plus everyone invited", () => {
+    expect(minTravellers(0)).toBe(1);
+    expect(minTravellers(3)).toBe(4);
   });
 });
 

@@ -194,6 +194,9 @@ function validateTrip(body: Partial<MockTrip> | undefined): string | null {
   }
   if (body.travellers != null && (body.travellers < 1 || body.travellers > 50)) return "Travellers must be between 1 and 50";
   if ((body.invitedEmails?.length ?? 0) > 20) return "You can invite up to 20 people";
+  if (body.travellers != null && body.travellers < 1 + (body.invitedEmails?.length ?? 0)) {
+    return "Travellers must include you and everyone invited";
+  }
   return null;
 }
 

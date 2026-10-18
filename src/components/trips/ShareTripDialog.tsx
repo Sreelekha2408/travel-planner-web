@@ -1,6 +1,7 @@
 import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import ShareOutlined from "@mui/icons-material/ShareOutlined";
 import { useState } from "react";
+import { minTravellers } from "../../common/tripUtils";
 import { useNotify } from "../../context/useNotify";
 import { useUpdateTrip } from "../../services/tripQueries";
 import { toTripInput, type Trip } from "../../services/tripService";
@@ -21,6 +22,9 @@ const ShareTripDialog = ({ trip, open, onClose }: ShareTripDialogProps) => {
   const [emails, setEmails] = useState(trip.invitedEmails);
 
   const unchanged = emails.length === trip.invitedEmails.length && emails.every((email) => trip.invitedEmails.includes(email));
+  // The headcount must cover you + everyone invited, so inviting past it raises it.
+  const savedTravellers = trip.travellers ?? 1;
+  const travellers = Math.max(savedTravellers, minTravellers(emails.length));
 
   const close = () => {
     if (updateTrip.isPending) return;
@@ -31,7 +35,7 @@ const ShareTripDialog = ({ trip, open, onClose }: ShareTripDialogProps) => {
 
   const save = () => {
     updateTrip.mutate(
-      { ...toTripInput(trip), invitedEmails: emails },
+      { ...toTripInput(trip), invitedEmails: emails, travellers },
       {
         onSuccess: () => {
           notify.success("Invites updated");
@@ -63,6 +67,9 @@ const ShareTripDialog = ({ trip, open, onClose }: ShareTripDialogProps) => {
         <Box sx={{ pt: 1 }}>
           <InviteEmailsField value={emails} onChange={setEmails} label="Email address" helperText="Press Enter or Add after each email." />
         </Box>
+        {travellers > savedTravellers && (
+          <Alert severity="info">Travellers will go up to {travellers} so everyone invited is counted.</Alert>
+        )}
         {updateTrip.isError && <Alert severity="error">{updateTrip.error.message || "Couldn't save the invites. Please try again."}</Alert>}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3, pt: 1, gap: 1 }}>
