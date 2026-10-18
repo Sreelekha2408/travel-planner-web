@@ -1,4 +1,6 @@
 import { createTheme, type Shadows } from "@mui/material/styles";
+// Adds MUI X component names (MuiPickerDay, MuiPickersInputBase…) to the theme's types.
+import type {} from "@mui/x-date-pickers/themeAugmentation";
 
 // Extra design colours that don't fit MUI's standard palette slots. Module augmentation
 // makes them part of the theme's types, so `theme.palette.brand.soft` and
@@ -90,8 +92,44 @@ export const theme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: { root: { borderRadius: 11 } },
     },
+    // The design's fields are 46px tall (MUI's default is 56px). Inputs, selects and
+    // date pickers all get the same vertical padding, and the floating label is
+    // re-centred to match.
     MuiOutlinedInput: {
-      styleOverrides: { root: { borderRadius: 11 } },
+      styleOverrides: {
+        root: { borderRadius: 11 },
+        input: { paddingTop: 11.5, paddingBottom: 11.5 },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        outlined: {
+          "&:not(.MuiInputLabel-shrink)": { transform: "translate(14px, 12px) scale(1)" },
+        },
+      },
+    },
+    // Date pickers render their own field (not OutlinedInput). The outlined variant sets the
+    // padding on its sections container, so the override has to come from its root.
+    MuiPickersOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 11,
+          "& .MuiPickersInputBase-sectionsContainer": { paddingTop: 11.5, paddingBottom: 11.5 },
+        },
+      },
+    },
+    // Today's date in the calendar uses the theme's primary colour instead of grey.
+    MuiPickerDay: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.MuiPickerDay-today:not(.Mui-selected)": {
+            borderColor: theme.palette.primary.main,
+            color: theme.palette.primary.main,
+            fontWeight: 700,
+            backgroundColor: theme.palette.brand.soft,
+          },
+        }),
+      },
     },
     MuiTab: {
       styleOverrides: { root: { textTransform: "none", fontWeight: 600 } },
