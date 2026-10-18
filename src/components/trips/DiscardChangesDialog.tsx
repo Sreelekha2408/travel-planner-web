@@ -1,6 +1,6 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import WarningAmberRounded from "@mui/icons-material/WarningAmberRounded";
+import DialogIconTitle from "../common/DialogIconTitle";
 
 type DiscardChangesDialogProps = {
   open: boolean;
@@ -18,26 +18,9 @@ const DiscardChangesDialog = ({ open, onKeepEditing, onDiscard }: DiscardChanges
     aria-labelledby="discard-changes-title"
     aria-describedby="discard-changes-description"
   >
-    <Box sx={{ px: 3, pt: 3 }}>
-      <Box
-        aria-hidden
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: "50%",
-          bgcolor: (theme) => alpha(theme.palette.warning.main, 0.1),
-          color: "warning.main",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <WarningAmberRounded />
-      </Box>
-    </Box>
-    <DialogTitle id="discard-changes-title" sx={{ fontSize: 18, fontWeight: 700, pt: 2, pb: 1 }}>
+    <DialogIconTitle id="discard-changes-title" icon={<WarningAmberRounded />} tone="warning">
       Discard changes?
-    </DialogTitle>
+    </DialogIconTitle>
     <DialogContent>
       <DialogContentText id="discard-changes-description" sx={{ fontSize: 14, color: "text.secondary" }}>
         You have unsaved changes. If you leave now, they'll be lost.

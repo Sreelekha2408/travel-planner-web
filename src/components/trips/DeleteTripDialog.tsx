@@ -1,8 +1,8 @@
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 import { useDeleteTrip } from "../../services/tripQueries";
 import type { Trip } from "../../services/tripService";
+import DialogIconTitle from "../common/DialogIconTitle";
 
 type DeleteTripDialogProps = {
   trip: Trip | null; // null = closed
@@ -38,26 +38,9 @@ const DeleteTripDialog = ({ trip, onClose, onDeleted }: DeleteTripDialogProps) =
       aria-labelledby="delete-trip-title"
       aria-describedby="delete-trip-description"
     >
-      <Box sx={{ px: 3, pt: 3 }}>
-        <Box
-          aria-hidden
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: "50%",
-            bgcolor: (theme) => alpha(theme.palette.error.main, 0.1),
-            color: "error.main",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <DeleteOutlined />
-        </Box>
-      </Box>
-      <DialogTitle id="delete-trip-title" sx={{ fontSize: 18, fontWeight: 700, pt: 2, pb: 1 }}>
+      <DialogIconTitle id="delete-trip-title" icon={<DeleteOutlined />} tone="error">
         Delete “{trip?.title}”?
-      </DialogTitle>
+      </DialogIconTitle>
       <DialogContent>
         <DialogContentText id="delete-trip-description" sx={{ fontSize: 14, color: "text.secondary" }}>
           The trip and its itinerary, expenses and invites will be permanently deleted. This can't be undone.

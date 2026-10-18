@@ -1,9 +1,10 @@
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import ShareOutlined from "@mui/icons-material/ShareOutlined";
 import { useState } from "react";
 import { useNotify } from "../../context/useNotify";
 import { useUpdateTrip } from "../../services/tripQueries";
 import { toTripInput, type Trip } from "../../services/tripService";
+import DialogIconTitle from "../common/DialogIconTitle";
 import InviteEmailsField from "./InviteEmailsField";
 
 type ShareTripDialogProps = {
@@ -42,18 +43,18 @@ const ShareTripDialog = ({ trip, open, onClose }: ShareTripDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onClose={close} maxWidth="sm" fullWidth aria-labelledby="share-trip-title" aria-describedby="share-trip-description">
-      <Box sx={{ px: 3, pt: 3 }}>
-        <Box
-          aria-hidden
-          sx={{ width: 48, height: 48, borderRadius: "50%", bgcolor: "brand.soft", color: "primary.main", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <ShareOutlined />
-        </Box>
-      </Box>
-      <DialogTitle id="share-trip-title" sx={{ fontSize: 18, fontWeight: 700, pt: 2, pb: 1 }}>
+    <Dialog
+      open={open}
+      onClose={close}
+      fullWidth
+      // Between MUI's xs (444px) and sm (600px): room for the email field and Add button.
+      slotProps={{ paper: { sx: { maxWidth: 480 } } }}
+      aria-labelledby="share-trip-title"
+      aria-describedby="share-trip-description"
+    >
+      <DialogIconTitle id="share-trip-title" icon={<ShareOutlined />} tone="primary">
         Share “{trip.title}”
-      </DialogTitle>
+      </DialogIconTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <DialogContentText id="share-trip-description" sx={{ fontSize: 14, color: "text.secondary" }}>
           Invite the people you're travelling with. They'll be able to view this trip once sharing is
