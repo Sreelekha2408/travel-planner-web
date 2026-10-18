@@ -11,6 +11,7 @@ import {
   formatDateRange,
   formatTravellers,
   getTripStatus,
+  sortTripTypes,
   tripCountdown,
   tripEmoji,
   tripLengthInDays,
@@ -125,7 +126,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
             <DetailRow emoji="🏷️" label="Trip type">
               {trip.tripTypes.length > 0 ? (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "flex-end" }}>
-                  {trip.tripTypes.map((type) => (
+                  {sortTripTypes(trip.tripTypes).map((type) => (
                     <Chip key={type} label={tripTypeWithEmoji(type)} size="small" sx={{ bgcolor: "brand.soft", color: "primary.dark", fontWeight: 600 }} />
                   ))}
                 </Box>

@@ -10,6 +10,7 @@ import {
   formatBudget,
   formatDateRange,
   formatTravellers,
+  sortTripTypes,
   tripLengthInDays,
   tripTypeWithEmoji,
   tripTypeOptions,
@@ -389,7 +390,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
             )}
             <SummaryRow emoji="👥" label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
             {tripTypes.length > 0 && (
-              <SummaryRow emoji="🏷️" label="Trip type" value={tripTypes.map(tripTypeWithEmoji).join(" · ")} />
+              <SummaryRow emoji="🏷️" label="Trip type" value={sortTripTypes(tripTypes).map(tripTypeWithEmoji).join(" · ")} />
             )}
           </Box>
         </Box>

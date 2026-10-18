@@ -94,10 +94,22 @@ export function tripTypeWithEmoji(type: TripType): string {
   return option ? `${option.emoji} ${option.label}` : type;
 }
 
-// The big emoji on the trip page: the first trip type's, or a plane when none is set.
+// Trip types in the same order as the form's chips. The API returns them as a set (no
+// order), so sort before listing them to keep the display stable.
+export function sortTripTypes(types: TripType[]): TripType[] {
+  const index = (type: TripType) => tripTypeOptions.findIndex((option) => option.value === type);
+  return [...types].sort((a, b) => index(a) - index(b));
+}
+
+// Which type's emoji represents a trip with several: the ones that say most about the
+// place come first (a beach trip with good food is still a beach trip).
+const EMOJI_PRIORITY: TripType[] = ["BEACH", "NATURE", "ADVENTURE", "CITY_BREAK", "CULTURE", "FOOD_AND_DRINK", "RELAXING"];
+
+// The big emoji on trip cards and the trip page: the highest-priority type's, or a plane
+// when none is set.
 export function tripEmoji(trip: Pick<Trip, "tripTypes">): string {
-  const first = trip.tripTypes[0];
-  return tripTypeOptions.find((option) => option.value === first)?.emoji ?? "✈️";
+  const top = EMOJI_PRIORITY.find((type) => trip.tripTypes.includes(type));
+  return tripTypeOptions.find((option) => option.value === top)?.emoji ?? "✈️";
 }
 
 export type TripProgress = {

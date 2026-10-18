@@ -6,6 +6,7 @@ import {
   formatTravellers,
   getTripStatus,
   sortTrips,
+  sortTripTypes,
   tripCountdown,
   tripEmoji,
   tripLengthInDays,
@@ -147,9 +148,21 @@ describe("tripProgress", () => {
 });
 
 describe("tripEmoji", () => {
-  it("uses the first trip type's emoji, or a plane when there is none", () => {
-    expect(tripEmoji({ tripTypes: ["BEACH", "NATURE"] })).toBe("🏖️");
+  it("uses the highest-priority trip type's emoji, whatever order the types come in", () => {
+    expect(tripEmoji({ tripTypes: ["FOOD_AND_DRINK", "BEACH"] })).toBe("🏖️");
+    expect(tripEmoji({ tripTypes: ["RELAXING", "CULTURE"] })).toBe("🏛️");
+  });
+
+  it("falls back to a plane when no trip type is set", () => {
     expect(tripEmoji({ tripTypes: [] })).toBe("✈️");
+  });
+});
+
+describe("sortTripTypes", () => {
+  it("orders types like the form's chips without changing the input", () => {
+    const types: Trip["tripTypes"] = ["NATURE", "RELAXING", "BEACH"];
+    expect(sortTripTypes(types)).toEqual(["RELAXING", "BEACH", "NATURE"]);
+    expect(types).toEqual(["NATURE", "RELAXING", "BEACH"]);
   });
 });
 
