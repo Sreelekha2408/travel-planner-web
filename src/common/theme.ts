@@ -1,4 +1,4 @@
-import { createTheme, type Shadows } from "@mui/material/styles";
+import { alpha, createTheme, type Shadows } from "@mui/material/styles";
 // Adds MUI X component names (MuiPickerDay, MuiPickersInputBase…) to the theme's types.
 import type {} from "@mui/x-date-pickers/themeAugmentation";
 
@@ -162,6 +162,37 @@ export const theme = createTheme({
             backgroundColor: theme.palette.brand.soft,
           },
         }),
+      },
+    },
+    // Menus (trip ⋯ menu, currency picker, selects): rounded, soft shadow, thin border,
+    // rounded item highlights in the soft indigo.
+    MuiMenu: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          marginTop: 6,
+          borderRadius: 12,
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: "0 8px 24px rgba(26, 26, 46, 0.12)",
+        }),
+        list: { padding: 6 },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: 8,
+          fontSize: 14,
+          minHeight: 38,
+          "&:hover": { backgroundColor: theme.palette.brand.soft },
+          "&.Mui-selected, &.Mui-selected:hover": { backgroundColor: theme.palette.brand.soft },
+        }),
+      },
+    },
+    // Dialogs: rounded corners and the design's soft shadow.
+    MuiDialog: {
+      styleOverrides: {
+        paper: { borderRadius: 16, boxShadow: "0 24px 48px rgba(26, 26, 46, 0.18)" },
+        backdrop: ({ theme }) => ({ backgroundColor: alpha(theme.palette.text.primary, 0.4) }),
       },
     },
     MuiTab: {

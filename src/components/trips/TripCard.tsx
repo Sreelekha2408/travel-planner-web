@@ -1,4 +1,5 @@
 import { Box, Card, CardActionArea, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import MoreHoriz from "@mui/icons-material/MoreHoriz";
@@ -58,12 +59,22 @@ const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
       >
         <MoreHoriz />
       </IconButton>
-      <Menu anchorEl={menuAnchor} open={menuAnchor !== null} onClose={closeMenu}>
+      <Menu
+        anchorEl={menuAnchor}
+        open={menuAnchor !== null}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }} // opens under the ⋯ button, right-aligned
+        slotProps={{ paper: { sx: { minWidth: 168 } } }}
+      >
         <MenuItem onClick={() => { closeMenu(); onEdit(trip); }}>
           <ListItemIcon><EditOutlined fontSize="small" /></ListItemIcon>
           Edit
         </MenuItem>
-        <MenuItem onClick={() => { closeMenu(); onDelete(trip); }} sx={{ color: "error.main" }}>
+        <MenuItem
+          onClick={() => { closeMenu(); onDelete(trip); }}
+          sx={{ color: "error.main", "&:hover": { bgcolor: (theme) => alpha(theme.palette.error.main, 0.08) } }}
+        >
           <ListItemIcon><DeleteOutlined fontSize="small" color="error" /></ListItemIcon>
           Delete
         </MenuItem>
