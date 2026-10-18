@@ -8,10 +8,17 @@ const MAX_INVITES = 20; // same limit as the backend
 type InviteEmailsFieldProps = {
   value: string[];
   onChange: (emails: string[]) => void;
+  label?: string;
+  helperText?: string;
 };
 
 // Type an email, press Enter or "Add", and it joins the list below with a remove button.
-const InviteEmailsField = ({ value, onChange }: InviteEmailsFieldProps) => {
+const InviteEmailsField = ({
+  value,
+  onChange,
+  label = "Invite travellers (optional)",
+  helperText = "Saved with your trip. Invites aren't sent yet: that comes with Shared trips.",
+}: InviteEmailsFieldProps) => {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +45,7 @@ const InviteEmailsField = ({ value, onChange }: InviteEmailsFieldProps) => {
       <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
         <TextField
           id="trip-invite"
-          label="Invite travellers (optional)"
+          label={label}
           type="email"
           placeholder="Add an email address"
           value={draft}
@@ -48,7 +55,7 @@ const InviteEmailsField = ({ value, onChange }: InviteEmailsFieldProps) => {
           }}
           onKeyDown={onKeyDown}
           error={error !== null}
-          helperText={error ?? "Saved with your trip. Invites aren't sent yet: that comes with Shared trips."}
+          helperText={error ?? helperText}
           sx={{ flex: 1 }}
         />
         <Button variant="outlined" onClick={add} sx={{ height: 46 }}>Add</Button>

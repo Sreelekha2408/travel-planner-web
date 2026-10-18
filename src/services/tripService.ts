@@ -35,6 +35,23 @@ export type TripInput = {
   invitedEmails: string[];
 };
 
+// The PUT body for an existing trip, e.g. to change only its invites:
+// updateTrip(trip.tripId, { ...toTripInput(trip), invitedEmails }).
+export function toTripInput(trip: Trip): TripInput {
+  return {
+    title: trip.title,
+    source: trip.source,
+    destination: trip.destination,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    budget: trip.budget,
+    currency: trip.currency ?? "INR", // trips saved before currencies existed
+    travellers: trip.travellers,
+    tripTypes: trip.tripTypes,
+    invitedEmails: trip.invitedEmails,
+  };
+}
+
 export function getTrips() {
   return apiFetch<Trip[]>("/trip/list");
 }
