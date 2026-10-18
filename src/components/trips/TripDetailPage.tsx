@@ -1,7 +1,5 @@
 import { Box, Chip, IconButton, Link, Skeleton, Tab, Tabs, Tooltip, Typography } from "@mui/material";
 import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
-import EditOutlined from "@mui/icons-material/EditOutlined";
-import ShareOutlined from "@mui/icons-material/ShareOutlined";
 import { useState, type ReactNode } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { gradients } from "../../common/theme";
@@ -40,15 +38,19 @@ const DetailRow = ({ emoji, label, children }: { emoji: string; label: string; c
 
 const cardSx = { bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 2.75 };
 
-// The design's 36px squares in the top-right corner: dark indigo icons on a soft,
-// mostly-white tile (a little of the header shows through), solid white on hover.
+// The design's 36px emoji squares in the top-right corner, on white tiles so the emoji's
+// colours stand out against the indigo header.
 const headerIconButtonSx = {
   width: 36,
   height: 36,
   borderRadius: 2.5,
+  fontSize: 17,
+  // IconButton's default colour is 54%-opacity black, and browsers apply that opacity to
+  // colour emoji too, which makes them look faded. Any opaque colour avoids it.
   color: "primary.dark",
-  bgcolor: "rgba(255, 255, 255, 0.75)",
-  "&:hover": { bgcolor: "common.white" },
+  bgcolor: "common.white",
+  boxShadow: "0 2px 6px rgba(26, 35, 126, 0.25)",
+  "&:hover": { bgcolor: "brand.soft" },
 };
 
 const TripDetail = ({ trip }: { trip: Trip }) => {
@@ -109,16 +111,16 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
             </Box>
           </Box>
         </Box>
-        {/* Edit + Share as icon squares, top-right as in the design */}
+        {/* Edit + Share as emoji squares, top-right as in the design */}
         <Box sx={{ position: "absolute", top: { xs: 20, sm: 24 }, right: { xs: 20, sm: 24 }, display: "flex", gap: 1 }}>
           <Tooltip title="Edit trip">
             <IconButton component={RouterLink} to={`/trips/${trip.tripId}/edit`} aria-label="Edit trip" sx={headerIconButtonSx}>
-              <EditOutlined fontSize="small" />
+              <span aria-hidden>✏️</span>
             </IconButton>
           </Tooltip>
           <Tooltip title="Share trip">
             <IconButton onClick={() => setShareOpen(true)} aria-label="Share trip" sx={headerIconButtonSx}>
-              <ShareOutlined fontSize="small" />
+              <span aria-hidden>🔗</span>
             </IconButton>
           </Tooltip>
         </Box>
