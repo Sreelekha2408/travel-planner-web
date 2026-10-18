@@ -60,6 +60,10 @@ POST /users/login
 ```
 The JWT is **only** in `Set-Cookie`, never in the body. React stores the user object.
 
+With **"Keep me signed in"** ticked, the body also has `"rememberMe": true` and the session lasts
+7 days instead of 30 minutes: the JWT's expiry and the cookie's `Max-Age=604800` both come from
+the same setting (`app.jwt.remember-me-expiration`), so they can't drift apart.
+
 **③ Any API call**
 ```
 GET /trip/list
@@ -79,6 +83,16 @@ POST /users/logout   (+ X-XSRF-TOKEN)
 ```
 JS can't delete an HttpOnly cookie, so the server overwrites it with an expired one.
 
+**⑥ Create account**
+```
+POST /users/signup   (+ X-XSRF-TOKEN)
+   {"firstName":"…","lastName":"…","email":"…","password":"…"}
+← 200 {"userId":12,"username":"<the email>",…}       ← no cookie: signing up doesn't sign in
+← 409 {"message":"An account with this email already exists"}
+```
+The frontend then calls ② with the same email and password. Sign-up is a POST too, so it
+needs the CSRF header like everything else.
+
 **Why the double-submit CSRF check works:** an attacker's site can make the browser *send*
 our cookies, but the same-origin policy stops it from *reading* them, so it can't put the
 matching value in the `X-XSRF-TOKEN` header. The token isn't secret from our own page; the
@@ -88,7 +102,7 @@ server just checks that header == cookie.
 
 ## 3. Backend changes in travel-planner-api
 
-The backend changes are 5 small commits on `main` in `travel-planner-api`, one idea each.
+The auth changes are these small commits on `main` in `travel-planner-api`, one idea each.
 View them in IntelliJ → *Git → Log* (click a commit to see its files and diffs), or with
 `git show <hash>`.
 
@@ -99,6 +113,8 @@ View them in IntelliJ → *Git → Log* (click a commit to see its files and dif
 | `45b8c56` | **Real 401s.** Wrong password was `200 ""`; logged-out requests were `403` | `service/UserService.java`, `controller/ApiExceptionHandler.java` (new), `config/SecurityConfig.java` |
 | `76c0ffd` | **The cookie.** Login sets an HttpOnly cookie; the filter reads it; new `/me` and `/logout` | `jwt/AuthCookies.java` (new), `jwt/JwtFilter.java`, `controller/UserController.java`, `service/UserService.java`, `config/SecurityConfig.java`, `application.properties` |
 | `3767be0` | **CSRF on.** Readable `XSRF-TOKEN` cookie + SPA handler; no token rotation | `config/SpaCsrfTokenRequestHandler.java` (new), `config/SecurityConfig.java` |
+| `670d8f1` | **No default JWT secret.** The app refuses to start without one; cookie flag renamed to `APP_AUTH_COOKIE_SECURE`; 7-day remember-me setting | `application.properties`, `local.properties.example` |
+| `eb1d3ec` | **Sign-up checks + "Keep me signed in".** Password rule, 409 for a taken email, username defaults to the email; `rememberMe` picks the session length | `service/UserService.java`, `repo/UserRepo.java`, `controller/UserController.java`, `dto/user/UserLoginRequest.java`, `jwt/JwtService.java`, `jwt/AuthCookies.java` |
 
 
 > **Why services don't change:** users are *looked up* by email, but
@@ -110,12 +126,15 @@ View them in IntelliJ → *Git → Log* (click a commit to see its files and dif
 
 | Property | Dev default | Production |
 | -------- | ----------- | ---------- |
-| `app.jwt.secret` | dev-only key | `APP_JWT_SECRET` (generate with `openssl rand -base64 32`) |
+| `app.jwt.secret` | **no default**: set in `local.properties` | `APP_JWT_SECRET` (generate with `openssl rand -base64 32`) |
 | `app.jwt.expiration` | `30m` | same |
-| `app.auth.cookie-secure` | `false` (dev is plain http) | `APP_COOKIE_SECURE=true` |
+| `app.jwt.remember-me-expiration` | `7d` | same |
+| `app.auth.cookie-secure` | `false` (dev is plain http) | `APP_AUTH_COOKIE_SECURE=true` |
 
-The database password lives in the gitignored `src/main/resources/local.properties`
-(see `local.properties.example`).
+Local secrets (the database password and the dev JWT key) live in the gitignored
+`src/main/resources/local.properties` (see `local.properties.example`). Without a JWT key
+the app fails at startup, on purpose: a forgotten secret in production should be loud, not
+silently fall back to a key everyone can read in the repo.
 
 ---
 
@@ -127,11 +146,12 @@ and ask the server who is logged in.
 | File | What it does |
 | ---- | ------------ |
 | [`src/services/serviceWrapper.ts`](../src/services/serviceWrapper.ts) | `apiFetch`: `credentials: "include"` on every request; copies the `XSRF-TOKEN` cookie into the `X-XSRF-TOKEN` header on POST/PUT/PATCH/DELETE; any `401` triggers the "unauthorized" handler |
-| [`src/services/authenticationService.ts`](../src/services/authenticationService.ts) | `signIn` → `POST /users/login`, `getCurrentUser` → `GET /users/me`, `signOut` → `POST /users/logout` |
+| [`src/services/authenticationService.ts`](../src/services/authenticationService.ts) | `signUp` → `POST /users/signup`, `signIn` → `POST /users/login`, `getCurrentUser` → `GET /users/me`, `signOut` → `POST /users/logout` |
 | [`src/context/AuthContext.tsx`](../src/context/AuthContext.tsx) | `AuthProvider`: calls `/users/me` on startup (the cookie can't be read from JS) and holds `loading / unauthenticated / authenticated` |
 | [`src/context/useAuth.ts`](../src/context/useAuth.ts) | The auth state type, the context and the `useAuth()` hook |
 | [`src/components/routing/ProtectedRoute.tsx`](../src/components/routing/ProtectedRoute.tsx) | Spinner while loading, otherwise render the page or redirect to `/signin` |
-| [`src/components/signin/SignInForm.tsx`](../src/components/signin/SignInForm.tsx) | Awaits `signIn`; shows 401/403/5xx/network errors |
+| [`src/components/signin/SignInForm.tsx`](../src/components/signin/SignInForm.tsx) | Awaits `signIn` (with "Keep me signed in"); shows 401/403/5xx/network errors |
+| [`src/components/signup/SignUpForm.tsx`](../src/components/signup/SignUpForm.tsx) | Creates the account, then signs in with the same credentials; shows 409 and other errors |
 | [`vite.config.ts`](../vite.config.ts) | Dev proxy `/api/*` → `http://localhost:8080`, so the browser only talks to its own origin |
 | [`mock-api/mockApi.ts`](../mock-api/mockApi.ts) | `npm run dev:mock`: dev-only stand-in for the auth endpoints (real HttpOnly cookies) and trips |
 
@@ -188,6 +208,8 @@ a cross-origin call.
 4. **Network** tab → any POST → Request Headers contain `Cookie:` and `X-XSRF-TOKEN:`.
 5. Refresh `/dashboard`: you stay signed in (`/users/me` → 200).
 6. Sign out → the `access_token` cookie disappears; `/dashboard` redirects to `/signin`.
+7. Sign in again with **Keep me signed in** ticked: the cookie's **Expires** column is now 7 days
+   ahead instead of 30 minutes.
 
 ---
 
@@ -201,10 +223,12 @@ a cross-origin call.
   backend needs CORS with `allowCredentials(true)` and an exact allowed origin (`*` is not
   allowed with credentials), and the SPA **can't read** the API's `XSRF-TOKEN` cookie, so
   double-submit breaks. That's the main reason to prefer the same domain.
-- **Possible extension:** a short-lived access cookie plus a long-lived refresh cookie
-  (`Path=/users/refresh`), so sessions can last longer without long-lived JWTs.
 - A JWT can't be revoked before it expires. Logout clears the browser's copy; if you need
   server-side revocation, add a token denylist or switch to server sessions.
+- **The trade-off in "Keep me signed in":** a 7-day JWT is a 7-day window if it ever leaks,
+  and it can't be revoked. The usual upgrade is a short-lived access cookie (e.g. 15 minutes)
+  plus a long-lived, revocable refresh cookie (`Path=/users/refresh`) stored server-side, so
+  "remember me" no longer means a long-lived JWT.
 
 ---
 
@@ -217,5 +241,6 @@ a cross-origin call.
 > X-XSRF-TOKEN header, which another site can't do because it can't read our cookies. The
 > React app never touches the token. On startup it calls `/users/me` to find out who's logged
 > in, a 401 anywhere sends the user to sign-in, and logout is a server call that expires the
-> cookie. In dev, a Vite proxy keeps everything same-origin, so cookies are first-party and
-> there's no CORS."
+> cookie. 'Keep me signed in' just picks a 7-day lifetime for both the JWT and the cookie; the
+> next step would be refresh tokens so that doesn't mean a long-lived JWT. In dev, a Vite proxy
+> keeps everything same-origin, so cookies are first-party and there's no CORS."
