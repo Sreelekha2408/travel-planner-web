@@ -63,7 +63,7 @@ const TravellerList = ({ emails, onRemove, removeDisabled = false, maxHeight }: 
           key={email}
           avatar={<InviteeAvatar email={email} />}
           name={email}
-          role="Invited · not sent yet"
+          role="Invited" // becomes a real status (sent, joined) once invite emails exist
           action={
             onRemove && (
               <Tooltip title="Remove">
