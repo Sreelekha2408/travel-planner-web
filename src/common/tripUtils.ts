@@ -172,6 +172,28 @@ export function tripCountdown(trip: Pick<Trip, "startDate" | "endDate">, today =
   return days === 1 ? "Ended yesterday" : `Ended ${roughDuration(days)} ago`;
 }
 
+// "Good morning" / "Good afternoon" / "Good evening" for the dashboard greeting.
+export function greeting(hour = dayjs().hour()): string {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+// The dashboard's one-line status, after the design's "You have 2 upcoming trips this
+// month": what's happening now, otherwise what's next, otherwise a nudge to plan.
+export function tripsSummary(trips: Pick<Trip, "title" | "startDate" | "endDate">[], today = dayjs().format("YYYY-MM-DD")): string {
+  if (trips.length === 0) return "No trips yet. Where are you off to first?";
+  const byStart = [...trips].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const ongoing = byStart.find((trip) => getTripStatus(trip, today) === "ongoing");
+  if (ongoing) return `${ongoing.title} is underway: ${tripCountdown(ongoing, today).toLowerCase()}. Enjoy!`;
+  const upcoming = byStart.filter((trip) => getTripStatus(trip, today) === "upcoming");
+  if (upcoming.length === 0) return "No upcoming trips. Time to plan the next one?";
+  const next = upcoming[0];
+  const when = tripCountdown(next, today).toLowerCase(); // "starts in 2 months"
+  if (upcoming.length === 1) return `${next.title} ${when}.`;
+  return `You have ${upcoming.length} upcoming trips. Next up: ${next.title}, which ${when}.`;
+}
+
 // Travellers is the trip's headcount; invites are the travellers who also use the app.
 // So the count can't be lower than you plus everyone invited (the backend checks too).
 export const MAX_TRAVELLERS = 50; // same limit as the backend

@@ -6,6 +6,7 @@ import {
   formatBudget,
   formatTravellers,
   getTripStatus,
+  greeting,
   minTravellers,
   sortTrips,
   sortTripTypes,
@@ -13,6 +14,7 @@ import {
   tripEmoji,
   tripLengthInDays,
   tripProgress,
+  tripsSummary,
 } from "./tripUtils";
 
 const today = "2026-10-18";
@@ -195,5 +197,41 @@ describe("colorIndex", () => {
   it("spreads different strings across buckets", () => {
     const emails = ["maya@x.test", "sam@x.test", "priya@x.test", "tom@x.test", "li@x.test", "ana@x.test"];
     expect(new Set(emails.map((email) => colorIndex(email, 8))).size).toBeGreaterThan(1);
+  });
+});
+
+describe("greeting", () => {
+  it.each([
+    [8, "Good morning"],
+    [12, "Good afternoon"],
+    [16, "Good afternoon"],
+    [17, "Good evening"],
+    [23, "Good evening"],
+  ])("at %i:00 says %s", (hour, expected) => {
+    expect(greeting(hour)).toBe(expected);
+  });
+});
+
+describe("tripsSummary", () => {
+  const paris = { title: "Paris", startDate: "2026-10-16", endDate: "2026-10-23" }; // ongoing
+  const bali = { title: "Bali", startDate: "2026-12-20", endDate: "2026-12-30" }; // upcoming
+  const goa = { title: "Goa", startDate: "2026-11-01", endDate: "2026-11-05" }; // upcoming, sooner
+  const tokyo = { title: "Tokyo", startDate: "2026-03-12", endDate: "2026-03-21" }; // completed
+
+  it("invites you to plan when there are no trips", () => {
+    expect(tripsSummary([], today)).toBe("No trips yet. Where are you off to first?");
+  });
+
+  it("puts a trip that's happening now first", () => {
+    expect(tripsSummary([bali, paris, tokyo], today)).toBe("Paris is underway: day 3 of 8. Enjoy!");
+  });
+
+  it("names the next trip, with the count when there are several", () => {
+    expect(tripsSummary([bali, tokyo], today)).toBe("Bali starts in 2 months.");
+    expect(tripsSummary([bali, goa], today)).toBe("You have 2 upcoming trips. Next up: Goa, which starts in 2 weeks.");
+  });
+
+  it("nudges you when every trip is in the past", () => {
+    expect(tripsSummary([tokyo], today)).toBe("No upcoming trips. Time to plan the next one?");
   });
 });
