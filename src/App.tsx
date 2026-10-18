@@ -1,5 +1,12 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+} from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -23,6 +30,40 @@ const TripsPage = lazy(() => import('./components/trips/TripsPage'));
 const TripFormPage = lazy(() => import('./components/trips/TripFormPage'));
 const TripDetailPage = lazy(() => import('./components/trips/TripDetailPage'));
 
+// Fallback for lazy pages outside the app layout (e.g. sign-up).
+const RootLayout = () => (
+  <Suspense fallback={<PageLoader fullScreen />}>
+    <Outlet />
+  </Suspense>
+);
+
+// A "data router" (createBrowserRouter) rather than <BrowserRouter>: same routes, but it
+// enables features like useBlocker, which the trip form uses to confirm before leaving
+// with unsaved changes.
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/trips" element={<TripsPage />} />
+          <Route path="/trips/new" element={<TripFormPage />} />
+          <Route path="/trips/:tripId" element={<TripDetailPage />} />
+          <Route path="/trips/:tripId/edit" element={<TripFormPage />} />
+          <Route path="/itinerary" element={<ComingSoon title="Itinerary" />} />
+          <Route path="/expenses" element={<ComingSoon title="Expenses" />} />
+          <Route path="/packing" element={<ComingSoon title="Packing list" />} />
+          <Route path="/shared" element={<ComingSoon title="Shared trips" />} />
+        </Route>
+      </Route>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<NotFound />} />
+    </Route>,
+  ),
+);
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -33,51 +74,7 @@ function App() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <NotificationProvider>
             <AuthProvider>
-              <BrowserRouter>
-                {/* Fallback for lazy pages outside the app layout (e.g. sign-up) */}
-                <Suspense fallback={<PageLoader fullScreen />}>
-                  <Routes>
-                    <Route path="/signin" element={<SignIn />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route element={<ProtectedRoute />}>
-                      <Route element={<AppLayout />}>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/trips" element={<TripsPage />} />
-                        <Route path="/trips/new" element={<TripFormPage />} />
-                        <Route
-                          path="/trips/:tripId"
-                          element={<TripDetailPage />}
-                        />
-                        <Route
-                          path="/trips/:tripId/edit"
-                          element={<TripFormPage />}
-                        />
-                        <Route
-                          path="/itinerary"
-                          element={<ComingSoon title="Itinerary" />}
-                        />
-                        <Route
-                          path="/expenses"
-                          element={<ComingSoon title="Expenses" />}
-                        />
-                        <Route
-                          path="/packing"
-                          element={<ComingSoon title="Packing list" />}
-                        />
-                        <Route
-                          path="/shared"
-                          element={<ComingSoon title="Shared trips" />}
-                        />
-                      </Route>
-                    </Route>
-                    <Route
-                      path="/"
-                      element={<Navigate to="/dashboard" replace />}
-                    />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
+              <RouterProvider router={router} />
             </AuthProvider>
           </NotificationProvider>
         </LocalizationProvider>

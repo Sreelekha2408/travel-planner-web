@@ -1,9 +1,9 @@
 import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, TextField, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useBlocker } from "react-router-dom";
 import { gradients } from "../../common/theme";
 import {
   DEFAULT_CURRENCY,
@@ -18,6 +18,7 @@ import { ApiError } from "../../services/serviceWrapper";
 import type { Trip, TripInput, TripType } from "../../services/tripService";
 import { useNotify } from "../../context/useNotify";
 import CurrencyPicker from "./CurrencyPicker";
+import DiscardChangesDialog from "./DiscardChangesDialog";
 import InviteEmailsField from "./InviteEmailsField";
 
 // Form state differs from the API shape: pickers hold Dayjs objects and inputs hold strings.
@@ -100,8 +101,24 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<TripFormValues>({ defaultValues: toFormValues(trip) });
+
+  // Unsaved-changes guard. useBlocker intercepts every in-app navigation (Cancel, back
+  // link, sidebar, browser back) while the form is dirty. It doesn't block while
+  // submitting, so the navigation that follows a successful save goes through.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && !isSubmitting && currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  // Closing or reloading the tab can't show an in-app dialog; the browser shows its own.
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
 
   // Drives the live "Trip summary" card.
   const [title, destination, startDate, endDate, budget, currency, travellers, tripTypes] = useWatch({
@@ -138,6 +155,11 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
 
   return (
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, alignItems: "flex-start" }}>
+      <DiscardChangesDialog
+        open={blocker.state === "blocked"}
+        onKeepEditing={() => blocker.reset?.()}
+        onDiscard={() => blocker.proceed?.()}
+      />
       <Box
         component="form"
         noValidate
