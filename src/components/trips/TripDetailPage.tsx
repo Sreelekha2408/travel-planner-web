@@ -66,7 +66,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
       </Box>
 
       {/* Only Overview exists for now; the other tabs are placeholders for later phases. */}
-      <Tabs value="overview" aria-label="Trip sections">
+      <Tabs value="overview" aria-label="Trip sections" variant="scrollable" scrollButtons={false}>
         <Tab value="overview" label="Overview" />
         {["Itinerary", "Expenses", "Packing"].map((label) => (
           <Tab key={label} value={label} disabled label={<span>{label} <Chip label="Soon" size="small" sx={{ height: 18, fontSize: 10, ml: 0.5 }} /></span>} />

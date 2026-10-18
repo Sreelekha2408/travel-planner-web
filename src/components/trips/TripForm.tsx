@@ -101,7 +101,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
         component="form"
         noValidate
         onSubmit={handleSubmit(submit)}
-        sx={{ flex: "2 1 460px", minWidth: 0, bgcolor: "background.paper", borderRadius: 4, p: 3.5, boxShadow: 1, display: "flex", flexDirection: "column", gap: 2.5 }}
+        sx={{ flex: "2 1 460px", minWidth: 0, bgcolor: "background.paper", borderRadius: 4, p: { xs: 2.5, sm: 3.5 }, boxShadow: 1, display: "flex", flexDirection: "column", gap: 2.5 }}
       >
         {errors.root?.serverError && <Alert severity="error">{errors.root.serverError.message}</Alert>}
 
