@@ -87,7 +87,8 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
         <Avatar sx={{ width: 34, height: 34, bgcolor: "primary.main", fontSize: 13, fontWeight: 700 }}>{initials}</Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography noWrap sx={{ fontSize: 13, fontWeight: 600 }}>{user?.firstName}</Typography>
-          <Typography noWrap sx={{ fontSize: 12, color: "text.secondary" }}>{user?.email}</Typography>
+          {/* "Traveller" as in the design; account details will live in a profile popup */}
+          <Typography noWrap sx={{ fontSize: 12, color: "text.secondary" }}>Traveller</Typography>
         </Box>
         <Tooltip title="Sign out">
           <IconButton aria-label="Sign out" size="small" onClick={() => auth.signOut()}>
