@@ -90,31 +90,51 @@ export const theme = createTheme({
   components: {
     MuiButton: {
       defaultProps: { disableElevation: true },
-      styleOverrides: { root: { borderRadius: 11 } },
+      styleOverrides: {
+        root: { borderRadius: 11 },
+        // MUI's default hover for transparent buttons is a 4% tint, barely visible.
+        // Use the design's soft indigo and a solid border instead.
+        outlined: ({ theme }) => ({
+          borderColor: theme.palette.brand.meterTrack,
+          "&:hover": { backgroundColor: theme.palette.brand.soft, borderColor: theme.palette.primary.main },
+        }),
+        text: ({ theme }) => ({
+          "&:hover": { backgroundColor: theme.palette.brand.soft },
+        }),
+      },
     },
-    // The design's fields are 46px tall (MUI's default is 56px). Inputs, selects and
-    // date pickers all get the same vertical padding, and the floating label is
+    // The design's fields are 46px tall with 14px text (MUI's defaults are 56px and 16px).
+    // Text inputs, selects and date pickers all get the same font, letter spacing and
+    // padding (13px + ~20px line height + 13px = 46px), and the floating label is
     // re-centred to match.
+    MuiInputBase: {
+      styleOverrides: { root: { fontSize: 14, letterSpacing: "normal" } },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: { borderRadius: 11 },
-        input: { paddingTop: 11.5, paddingBottom: 11.5 },
+        input: { paddingTop: 13, paddingBottom: 13 },
       },
     },
     MuiInputLabel: {
       styleOverrides: {
+        root: { fontSize: 14 },
         outlined: {
-          "&:not(.MuiInputLabel-shrink)": { transform: "translate(14px, 12px) scale(1)" },
+          "&:not(.MuiInputLabel-shrink)": { transform: "translate(14px, 13px) scale(1)" },
         },
       },
     },
     // Date pickers render their own field (not OutlinedInput). The outlined variant sets the
     // padding on its sections container, so the override has to come from its root.
+    MuiPickersInputBase: {
+      // Picker fields default to body1's letter spacing, which made dates look larger.
+      styleOverrides: { root: { fontSize: 14, letterSpacing: "normal" } },
+    },
     MuiPickersOutlinedInput: {
       styleOverrides: {
         root: {
           borderRadius: 11,
-          "& .MuiPickersInputBase-sectionsContainer": { paddingTop: 11.5, paddingBottom: 11.5 },
+          "& .MuiPickersInputBase-sectionsContainer": { paddingTop: 13, paddingBottom: 13 },
         },
       },
     },
