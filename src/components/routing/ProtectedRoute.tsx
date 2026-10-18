@@ -7,7 +7,7 @@ const ProtectedRoute = () => {
   const auth = useAuth();
   const location = useLocation();
 
-  // Wait for /auth/me; redirecting now would bounce a logged-in user to sign-in on refresh.
+  // Wait for /users/me; redirecting now would bounce a logged-in user to sign-in on refresh.
   if (auth.status === "loading") {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>

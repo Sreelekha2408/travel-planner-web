@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { mockApi } from './mock-api/mockApi'
@@ -20,6 +21,11 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
+  },
+  // Vitest reuses this config, so tests resolve imports and JSX exactly like the app.
+  test: {
+    environment: 'jsdom', // a simulated browser DOM for React Testing Library
+    setupFiles: ['./src/test/setup.ts'],
   },
   server: {
     proxy: {
