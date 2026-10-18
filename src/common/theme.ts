@@ -1,21 +1,100 @@
-// Colours from the TravelPlan design. Phase 4 moves these into a MUI theme
-// (createTheme + ThemeProvider); until then components import them from here.
-export const colors = {
-  primary: "#3949AB",
-  primaryDark: "#283593",
-  primaryLight: "#E8EAF6",
-  primaryMid: "#5C6BC0",
-  accent: "#FF7043",
-  success: "#2E7D32",
-  successLight: "#E8F5E9",
-  warning: "#BF360C",
-  warningLight: "#FBE9E7",
-  text: "#1A1A2E",
-  textMuted: "#5B6270",
-  navText: "#4B5160",
-  border: "#E5E7EB",
-  inputBorder: "#D9DCE8",
-  background: "#F7F8FC",
-  surface: "#FFFFFF",
-  cardShadow: "0 2px 12px rgba(92,107,192,0.10)",
+import { createTheme, type Shadows } from "@mui/material/styles";
+
+// Extra design colours that don't fit MUI's standard palette slots. Module augmentation
+// makes them part of the theme's types, so `theme.palette.brand.soft` and
+// `sx={{ bgcolor: "brand.soft" }}` are checked like built-in colours.
+type BrandPalette = {
+  soft: string; // light indigo: active nav item, icon tiles
+  nav: string; // sidebar link text
+  body: string; // secondary body copy (checkbox labels, tips)
+  onDark: string; // muted text on indigo panels
+  onWarm: string; // muted text on the orange sign-up panel
+  highlight: string; // "Plan" in the logo and the progress bar on dark panels
+  glass: string; // translucent white on gradients (badges, icon tiles)
+  glassStrong: string; // stronger translucent white (hover, progress track)
+  watermark: string; // big faded letters on trip covers
+  meterTrack: string; // empty password-strength bar
+  meterWeak: string;
+  meterFair: string;
 };
+
+declare module "@mui/material/styles" {
+  interface Palette {
+    brand: BrandPalette;
+  }
+  interface PaletteOptions {
+    brand?: BrandPalette;
+  }
+}
+
+// Illustration gradients from the design. They're artwork rather than UI colours,
+// so they live here as named constants next to the palette.
+export const gradients = {
+  signInPanel: "linear-gradient(145deg, #283593 0%, #3949AB 55%, #5C6BC0 100%)",
+  signUpPanel: "linear-gradient(145deg, #D84315 0%, #E64A19 40%, #3949AB 130%)",
+  tripSummary: "linear-gradient(135deg, #3949AB 0%, #5C6BC0 100%)",
+  tripHeader: "linear-gradient(135deg, #5C6BC0 0%, #7E57C2 100%)",
+  tripCovers: [
+    "linear-gradient(135deg, #5C6BC0 0%, #7E57C2 100%)",
+    "linear-gradient(135deg, #E64A19 0%, #AD1457 100%)",
+    "linear-gradient(135deg, #00796B 0%, #0277BD 100%)",
+  ],
+};
+
+// Icon tile colours for itinerary items (sign-up preview now, Itinerary page later).
+export const activityColors = {
+  flight: { icon: "#3949AB", tile: "#E8EAF6" },
+  hotel: { icon: "#1565C0", tile: "#E3F2FD" },
+  food: { icon: "#B85C00", tile: "#FFF3E0" },
+};
+
+const base = createTheme();
+
+export const theme = createTheme({
+  palette: {
+    primary: { main: "#3949AB", dark: "#283593", light: "#5C6BC0", contrastText: "#FFFFFF" },
+    secondary: { main: "#FF7043" },
+    success: { main: "#2E7D32" },
+    warning: { main: "#BF360C" },
+    text: { primary: "#1A1A2E", secondary: "#5B6270" },
+    background: { default: "#F7F8FC", paper: "#FFFFFF" },
+    divider: "#E5E7EB",
+    brand: {
+      soft: "#E8EAF6",
+      nav: "#4B5160",
+      body: "#3F4553",
+      onDark: "#DDE1F7",
+      onWarm: "#FFE9E1",
+      highlight: "#FFAB91",
+      glass: "rgba(255, 255, 255, 0.16)",
+      glassStrong: "rgba(255, 255, 255, 0.28)",
+      watermark: "rgba(255, 255, 255, 0.38)",
+      meterTrack: "#DDDFE9",
+      meterWeak: "#E65100",
+      meterFair: "#F9A825",
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
+    button: { textTransform: "none", fontWeight: 600 }, // the design uses normal-case buttons
+  },
+  // [1] = the design's soft card shadow (used by Card/Paper elevation 1);
+  // [4] = the lifted preview card on the sign-up panel.
+  shadows: base.shadows.map((shadow, index) => {
+    if (index === 1) return "0 2px 12px rgba(92, 107, 192, 0.10)";
+    if (index === 4) return "0 12px 40px rgba(26, 26, 46, 0.25)";
+    return shadow;
+  }) as Shadows,
+  components: {
+    MuiButton: {
+      defaultProps: { disableElevation: true },
+      styleOverrides: { root: { borderRadius: 11 } },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: { root: { borderRadius: 11 } },
+    },
+    MuiTab: {
+      styleOverrides: { root: { textTransform: "none", fontWeight: 600 } },
+    },
+  },
+});

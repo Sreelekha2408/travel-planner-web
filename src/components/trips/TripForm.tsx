@@ -3,7 +3,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
-import { colors } from "../../common/theme";
+import { gradients } from "../../common/theme";
 import { formatBudget, formatDateRange, formatTravellers, tripLengthInDays, tripTypeLabel, tripTypeOptions } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import type { Trip, TripInput, TripType } from "../../services/tripService";
@@ -101,7 +101,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
         component="form"
         noValidate
         onSubmit={handleSubmit(submit)}
-        sx={{ flex: "2 1 460px", minWidth: 0, bgcolor: colors.surface, borderRadius: 4, p: 3.5, boxShadow: colors.cardShadow, display: "flex", flexDirection: "column", gap: 2.5 }}
+        sx={{ flex: "2 1 460px", minWidth: 0, bgcolor: "background.paper", borderRadius: 4, p: 3.5, boxShadow: 1, display: "flex", flexDirection: "column", gap: 2.5 }}
       >
         {errors.root?.serverError && <Alert severity="error">{errors.root.serverError.message}</Alert>}
 
@@ -248,7 +248,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
           render={({ field }) => (
             // fieldset + legend groups the chips under one label for screen readers.
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ fontSize: 13, fontWeight: 600, color: colors.text, mb: 1.25 }}>
+              <FormLabel component="legend" sx={{ fontSize: 13, fontWeight: 600, color: "text.primary", mb: 1.25 }}>
                 What kind of trip is it?
               </FormLabel>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -281,7 +281,7 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
           render={({ field }) => <InviteEmailsField value={field.value} onChange={field.onChange} />}
         />
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 1.5, pt: 2, borderTop: `1px solid ${colors.border}` }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 1.5, pt: 2, borderTop: 1, borderColor: "divider" }}>
           <Button component={RouterLink} to={trip ? `/trips/${trip.tripId}` : "/trips"} variant="outlined" disabled={isSubmitting}>
             Cancel
           </Button>
@@ -294,26 +294,26 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
       <Box component="aside" sx={{ flex: "1 1 260px", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
         <Box
           aria-live="polite"
-          sx={{ background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryMid} 100%)`, borderRadius: 4, p: 2.75, color: colors.surface, display: "flex", flexDirection: "column", gap: 1.25 }}
+          sx={{ background: gradients.tripSummary, borderRadius: 4, p: 2.75, color: "common.white", display: "flex", flexDirection: "column", gap: 1.25 }}
         >
-          <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#DDE1F7" }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "brand.onDark" }}>
             Trip summary
           </Typography>
           <Typography sx={{ fontSize: 20, fontWeight: 800 }}>{title.trim() || "Your trip will appear here"}</Typography>
-          <Typography sx={{ fontSize: 13, lineHeight: 1.6, color: "#DDE1F7" }}>
+          <Typography sx={{ fontSize: 13, lineHeight: 1.6, color: "brand.onDark" }}>
             {destination.trim() || "Add a name, destination and dates and this card fills in as you go."}
           </Typography>
-          {summaryDates && <Typography sx={{ fontSize: 13, color: "#DDE1F7" }}>{summaryDates}</Typography>}
+          {summaryDates && <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>{summaryDates}</Typography>}
           {budget !== "" && Number(budget) >= 0 && (
-            <Typography sx={{ fontSize: 13, color: "#DDE1F7" }}>Budget {formatBudget(Number(budget))}</Typography>
+            <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>Budget {formatBudget(Number(budget))}</Typography>
           )}
-          <Typography sx={{ fontSize: 13, color: "#DDE1F7" }}>{formatTravellers(Number(travellers))}</Typography>
+          <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>{formatTravellers(Number(travellers))}</Typography>
           {tripTypes.length > 0 && (
-            <Typography sx={{ fontSize: 13, color: "#DDE1F7" }}>{tripTypes.map(tripTypeLabel).join(" · ")}</Typography>
+            <Typography sx={{ fontSize: 13, color: "brand.onDark" }}>{tripTypes.map(tripTypeLabel).join(" · ")}</Typography>
           )}
         </Box>
 
-        <Box sx={{ bgcolor: colors.surface, borderRadius: 4, p: 2.75, boxShadow: colors.cardShadow, display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <Box sx={{ bgcolor: "background.paper", borderRadius: 4, p: 2.75, boxShadow: 1, display: "flex", flexDirection: "column", gap: 1.5 }}>
           <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Planning tips</Typography>
           {[
             "Set a budget early. The tracker will show how much is left as you add bookings.",
@@ -321,8 +321,8 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
             "Pick a few trip styles to get activity ideas that fit.",
           ].map((tip) => (
             <Box key={tip} sx={{ display: "flex", gap: 1.25 }}>
-              <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: colors.primary, mt: 0.9, flexShrink: 0 }} />
-              <Typography sx={{ fontSize: 13, lineHeight: 1.5, color: "#3F4553" }}>{tip}</Typography>
+              <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "primary.main", mt: 0.9, flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 13, lineHeight: 1.5, color: "brand.body" }}>{tip}</Typography>
             </Box>
           ))}
         </Box>

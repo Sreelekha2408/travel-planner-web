@@ -1,7 +1,6 @@
 import { Alert, Box, Button, Link, Skeleton, Typography } from "@mui/material";
 import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
 import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
-import { colors } from "../../common/theme";
 import { ApiError } from "../../services/serviceWrapper";
 import { useCreateTrip, useTrip, useUpdateTrip } from "../../services/tripQueries";
 import type { Trip } from "../../services/tripService";
@@ -14,7 +13,7 @@ const PageHeader = ({ title, subtitle, backTo, backLabel }: { title: string; sub
       {backLabel}
     </Link>
     <Typography component="h1" sx={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.01em" }}>{title}</Typography>
-    <Typography sx={{ fontSize: 14, color: colors.textMuted }}>{subtitle}</Typography>
+    <Typography sx={{ fontSize: 14, color: "text.secondary" }}>{subtitle}</Typography>
   </Box>
 );
 

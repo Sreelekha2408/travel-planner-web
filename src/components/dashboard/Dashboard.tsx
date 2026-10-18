@@ -1,7 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import AddRounded from "@mui/icons-material/AddRounded";
 import { Link as RouterLink } from "react-router-dom";
-import { colors } from "../../common/theme";
 import { useAuth } from "../../context/useAuth";
 import TripGrid from "../trips/TripGrid";
 
@@ -16,7 +15,7 @@ const Dashboard = () => {
           <Typography component="h1" sx={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.01em" }}>
             Welcome back, {firstName}
           </Typography>
-          <Typography sx={{ fontSize: 14, color: colors.textMuted, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 14, color: "text.secondary", mt: 0.5 }}>
             Here's what's happening with your trips.
           </Typography>
         </Box>

@@ -1,7 +1,6 @@
 import { Alert, Box, Button, Checkbox, FormControlLabel, InputLabel, Link, TextField, Typography } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
-import { colors } from "../../common/theme";
 import { EMAIL_PATTERN } from "../../common/tripUtils";
 import { useAuth } from "../../context/useAuth";
 import Logo from "../layout/Logo";
@@ -49,7 +48,7 @@ const SignInForm = () => {
       <Box sx={{ display: { xs: "block", md: "none" } }}><Logo /></Box>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
         <Typography component="h1" sx={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.01em" }}>Welcome back</Typography>
-        <Typography sx={{ fontSize: 14, color: colors.textMuted }}>Sign in to pick up where you left off.</Typography>
+        <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Sign in to pick up where you left off.</Typography>
       </Box>
 
       {errors.root?.serverError && <Alert severity="error">{errors.root.serverError.message}</Alert>}
@@ -94,7 +93,7 @@ const SignInForm = () => {
             <FormControlLabel
               control={<Checkbox checked={field.value} onChange={(event) => field.onChange(event.target.checked)} size="small" />}
               label="Keep me signed in on this device"
-              slotProps={{ typography: { sx: { fontSize: 13, color: "#3F4553" } } }}
+              slotProps={{ typography: { sx: { fontSize: 13, color: "brand.body" } } }}
             />
           )}
         />
@@ -104,7 +103,7 @@ const SignInForm = () => {
         {isSubmitting ? "Signing in…" : "Sign in"}
       </Button>
 
-      <Typography sx={{ textAlign: "center", fontSize: 14, color: colors.textMuted }}>
+      <Typography sx={{ textAlign: "center", fontSize: 14, color: "text.secondary" }}>
         New to TravelPlan?{" "}
         <Link component={RouterLink} to="/signup" sx={{ fontWeight: 600 }}>Create an account</Link>
       </Typography>

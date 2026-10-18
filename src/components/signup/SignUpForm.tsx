@@ -2,7 +2,6 @@ import { Alert, Box, Button, Checkbox, FormControlLabel, FormHelperText, InputLa
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
 import { getPasswordStrength, meetsPasswordRule } from "../../common/passwordStrength";
-import { colors } from "../../common/theme";
 import { EMAIL_PATTERN } from "../../common/tripUtils";
 import { useAuth } from "../../context/useAuth";
 import { signUp } from "../../services/authenticationService";
@@ -18,7 +17,8 @@ type SignUpFormValues = {
   acceptTerms: boolean;
 };
 
-const meterColors = ["#DDDFE9", "#E65100", "#E65100", "#F9A825", colors.success];
+// Bar colour per strength score (0-4), as theme palette paths.
+const meterColors = ["brand.meterTrack", "brand.meterWeak", "brand.meterWeak", "brand.meterFair", "success.main"];
 
 function getSignUpErrorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) return "Can't reach the server. Check your connection and try again.";
@@ -57,7 +57,7 @@ const SignUpForm = () => {
       <Logo />
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
         <Typography component="h1" sx={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.01em" }}>Create your account</Typography>
-        <Typography sx={{ fontSize: 14, color: colors.textMuted }}>
+        <Typography sx={{ fontSize: 14, color: "text.secondary" }}>
           Free to start. Your first trip takes about two minutes to set up.
         </Typography>
       </Box>
@@ -146,7 +146,7 @@ const SignUpForm = () => {
                 control={<Checkbox checked={field.value} onChange={(event) => field.onChange(event.target.checked)} size="small" />}
                 // Plain text for now: the Terms and Privacy pages don't exist yet.
                 label="I agree to the Terms of Service and Privacy Policy."
-                slotProps={{ typography: { sx: { fontSize: 13, color: "#3F4553" } } }}
+                slotProps={{ typography: { sx: { fontSize: 13, color: "brand.body" } } }}
               />
               {fieldState.error && <FormHelperText error sx={{ mx: 0, mt: 0 }}>{fieldState.error.message}</FormHelperText>}
             </Box>
@@ -158,7 +158,7 @@ const SignUpForm = () => {
         {isSubmitting ? "Creating account…" : "Create account"}
       </Button>
 
-      <Typography sx={{ textAlign: "center", fontSize: 14, color: colors.textMuted }}>
+      <Typography sx={{ textAlign: "center", fontSize: 14, color: "text.secondary" }}>
         Already have an account?{" "}
         <Link component={RouterLink} to="/signin" sx={{ fontWeight: 600 }}>Sign in</Link>
       </Typography>

@@ -8,7 +8,6 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import LuggageOutlined from "@mui/icons-material/LuggageOutlined";
 import type { ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { colors } from "../../common/theme";
 import { useAuth } from "../../context/useAuth";
 import Logo from "./Logo";
 
@@ -33,15 +32,16 @@ const AppLayout = () => {
   const initials = user ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() : "";
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: colors.background, color: colors.text }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default", color: "text.primary" }}>
       <Box
         component="nav"
         aria-label="Main"
         sx={{
           width: sidebarWidth,
           flexShrink: 0,
-          bgcolor: colors.surface,
-          borderRight: `1px solid ${colors.border}`,
+          bgcolor: "background.paper",
+          borderRight: 1,
+          borderColor: "divider",
           display: "flex",
           flexDirection: "column",
           pt: 3.5,
@@ -57,7 +57,7 @@ const AppLayout = () => {
         </Box>
 
         <Typography
-          sx={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: colors.textMuted, px: 2.75, pb: 1 }}
+          sx={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "text.secondary", px: 2.75, pb: 1 }}
         >
           Menu
         </Typography>
@@ -73,20 +73,18 @@ const AppLayout = () => {
               gap: 1.5,
               px: 2.75,
               py: 1.375,
-              // A plain <a> inherits the browser's serif font; use MUI's (Phase 4 sets it globally).
-              fontFamily: (theme) => theme.typography.fontFamily,
               fontSize: 14,
               fontWeight: 500,
-              color: colors.navText,
+              color: "brand.nav",
               textDecoration: "none",
               borderRight: "3px solid transparent",
-              "&:hover": { bgcolor: colors.background },
+              "&:hover": { bgcolor: "background.default" },
               // NavLink adds the "active" class when the URL matches (also for /trips/123).
               "&.active": {
-                bgcolor: colors.primaryLight,
-                color: colors.primaryDark,
+                bgcolor: "brand.soft",
+                color: "primary.dark",
                 fontWeight: 600,
-                borderRightColor: colors.primary,
+                borderRightColor: "primary.main",
               },
             }}
           >
@@ -100,11 +98,11 @@ const AppLayout = () => {
 
         <Box sx={{ flex: 1 }} />
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 2.75, pt: 1.75, borderTop: `1px solid ${colors.border}` }}>
-          <Avatar sx={{ width: 34, height: 34, bgcolor: colors.primary, fontSize: 13, fontWeight: 700 }}>{initials}</Avatar>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 2.75, pt: 1.75, borderTop: 1, borderColor: "divider" }}>
+          <Avatar sx={{ width: 34, height: 34, bgcolor: "primary.main", fontSize: 13, fontWeight: 700 }}>{initials}</Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography noWrap sx={{ fontSize: 13, fontWeight: 600 }}>{user?.firstName}</Typography>
-            <Typography noWrap sx={{ fontSize: 12, color: colors.textMuted }}>{user?.email}</Typography>
+            <Typography noWrap sx={{ fontSize: 12, color: "text.secondary" }}>{user?.email}</Typography>
           </Box>
           <Tooltip title="Sign out">
             <IconButton aria-label="Sign out" size="small" onClick={() => auth.signOut()}>

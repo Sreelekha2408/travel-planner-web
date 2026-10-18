@@ -4,17 +4,11 @@ import EditOutlined from "@mui/icons-material/EditOutlined";
 import MoreHoriz from "@mui/icons-material/MoreHoriz";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { colors } from "../../common/theme";
+import { gradients } from "../../common/theme";
 import { destinationCode, formatBudget, formatDateRange, formatTravellers, getTripStatus } from "../../common/tripUtils";
 import type { Trip } from "../../services/tripService";
 import TripStatusChip from "./TripStatusChip";
 
-// The design's three cover gradients, picked by trip id so a card keeps its colour.
-const coverGradients = [
-  "linear-gradient(135deg, #5C6BC0 0%, #7E57C2 100%)",
-  "linear-gradient(135deg, #E64A19 0%, #AD1457 100%)",
-  "linear-gradient(135deg, #00796B 0%, #0277BD 100%)",
-];
 
 type TripCardProps = {
   trip: Trip;
@@ -29,25 +23,25 @@ const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
   const closeMenu = () => setMenuAnchor(null);
 
   return (
-    <Card sx={{ position: "relative", borderRadius: 4, boxShadow: colors.cardShadow }}>
+    <Card sx={{ position: "relative", borderRadius: 4, boxShadow: 1 }}>
       {/* The whole card links to the trip; the menu button sits outside the link
           because a button inside an <a> is invalid HTML and confuses screen readers. */}
       <CardActionArea component={RouterLink} to={`/trips/${trip.tripId}`}>
-        <Box sx={{ height: 120, background: coverGradients[trip.tripId % coverGradients.length], position: "relative" }}>
+        <Box sx={{ height: 120, background: gradients.tripCovers[trip.tripId % gradients.tripCovers.length] /* picked by id so a card keeps its colour */, position: "relative" }}>
           <Box sx={{ position: "absolute", top: 12, right: 12 }}>
             <TripStatusChip status={getTripStatus(trip)} />
           </Box>
           <Typography
             aria-hidden
-            sx={{ position: "absolute", left: 16, bottom: 4, fontSize: 52, fontWeight: 800, letterSpacing: "0.04em", color: "rgba(255,255,255,0.38)", lineHeight: 1.1 }}
+            sx={{ position: "absolute", left: 16, bottom: 4, fontSize: 52, fontWeight: 800, letterSpacing: "0.04em", color: "brand.watermark", lineHeight: 1.1 }}
           >
             {destinationCode(trip.destination)}
           </Typography>
         </Box>
         <Box sx={{ p: 2, pr: 6 }}>
           <Typography noWrap sx={{ fontSize: 16, fontWeight: 700 }}>{trip.title}</Typography>
-          <Typography noWrap sx={{ fontSize: 13, color: colors.textMuted, mt: 0.25 }}>{trip.destination}</Typography>
-          <Typography component="div" sx={{ display: "flex", flexWrap: "wrap", columnGap: 1.75, rowGap: 0.5, mt: 1.25, fontSize: 12, color: colors.navText }}>
+          <Typography noWrap sx={{ fontSize: 13, color: "text.secondary", mt: 0.25 }}>{trip.destination}</Typography>
+          <Typography component="div" sx={{ display: "flex", flexWrap: "wrap", columnGap: 1.75, rowGap: 0.5, mt: 1.25, fontSize: 12, color: "brand.nav" }}>
             <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
             {travellers && <span>{travellers}</span>}
             <span>{formatBudget(trip.budget)}</span>

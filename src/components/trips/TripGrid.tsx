@@ -2,7 +2,6 @@ import { Alert, Box, Button, Skeleton, Snackbar, Typography } from "@mui/materia
 import AddRounded from "@mui/icons-material/AddRounded";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { colors } from "../../common/theme";
 import { sortTrips } from "../../common/tripUtils";
 import { useTrips } from "../../services/tripQueries";
 import type { Trip } from "../../services/tripService";
@@ -42,9 +41,9 @@ const TripGrid = ({ limit }: { limit?: number }) => {
 
   if (trips.length === 0) {
     return (
-      <Box sx={{ bgcolor: colors.surface, borderRadius: 4, boxShadow: colors.cardShadow, p: 5, textAlign: "center" }}>
+      <Box sx={{ bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 5, textAlign: "center" }}>
         <Typography sx={{ fontSize: 18, fontWeight: 700 }}>No trips yet</Typography>
-        <Typography sx={{ color: colors.textMuted, mt: 1, mb: 3 }}>
+        <Typography sx={{ color: "text.secondary", mt: 1, mb: 3 }}>
           Plan your first trip: add a destination and dates, and the rest can come later.
         </Typography>
         <Button component={RouterLink} to="/trips/new" variant="contained" startIcon={<AddRounded />}>

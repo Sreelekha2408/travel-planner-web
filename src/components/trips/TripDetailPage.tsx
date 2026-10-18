@@ -2,7 +2,7 @@ import { Box, Button, Chip, Link, Skeleton, Tab, Tabs, Typography } from "@mui/m
 import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import { Link as RouterLink, useParams } from "react-router-dom";
-import { colors } from "../../common/theme";
+import { gradients } from "../../common/theme";
 import { formatBudget, formatDateRange, formatTravellers, getTripStatus, tripLengthInDays, tripTypeLabel } from "../../common/tripUtils";
 import { ApiError } from "../../services/serviceWrapper";
 import { useTrip } from "../../services/tripQueries";
@@ -10,11 +10,11 @@ import type { Trip } from "../../services/tripService";
 import { TripLoadError } from "./TripFormPage";
 import TripStatusChip from "./TripStatusChip";
 
-const headerBadgeSx = { bgcolor: "rgba(255,255,255,0.2)", color: colors.surface, fontWeight: 600, fontSize: 12 };
+const headerBadgeSx = { bgcolor: "brand.glass", color: "common.white", fontWeight: 600, fontSize: 12 };
 
 const DetailRow = ({ label, value }: { label: string; value: string }) => (
-  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, py: 1.25, borderBottom: `1px solid ${colors.border}`, "&:last-of-type": { borderBottom: "none" } }}>
-    <Typography sx={{ fontSize: 14, color: colors.textMuted }}>{label}</Typography>
+  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, py: 1.25, borderBottom: 1, borderColor: "divider", "&:last-of-type": { borderBottom: "none" } }}>
+    <Typography sx={{ fontSize: 14, color: "text.secondary" }}>{label}</Typography>
     <Typography sx={{ fontSize: 14, fontWeight: 600, textAlign: "right" }}>{value}</Typography>
   </Box>
 );
@@ -31,10 +31,10 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
 
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${colors.primaryMid} 0%, #7E57C2 100%)`,
+          background: gradients.tripHeader,
           borderRadius: 4,
           p: { xs: 2.5, sm: 3.5 },
-          color: colors.surface,
+          color: "common.white",
           display: "flex",
           flexWrap: "wrap",
           alignItems: "flex-end",
@@ -59,7 +59,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
           component={RouterLink}
           to={`/trips/${trip.tripId}/edit`}
           startIcon={<EditOutlined />}
-          sx={{ bgcolor: "rgba(255,255,255,0.2)", color: colors.surface, "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}
+          sx={{ bgcolor: "brand.glass", color: "common.white", "&:hover": { bgcolor: "brand.glassStrong" } }}
         >
           Edit trip
         </Button>
@@ -73,7 +73,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
         ))}
       </Tabs>
 
-      <Box sx={{ bgcolor: colors.surface, borderRadius: 4, boxShadow: colors.cardShadow, p: 2.75, maxWidth: 560 }}>
+      <Box sx={{ bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 2.75, maxWidth: 560 }}>
         <Typography component="h2" sx={{ fontSize: 14, fontWeight: 700, mb: 1 }}>Trip details</Typography>
         <DetailRow label="From" value={trip.source ?? "Not set"} />
         <DetailRow label="Destination" value={trip.destination} />
@@ -82,7 +82,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
         <DetailRow label="Budget" value={formatBudget(trip.budget)} />
         <DetailRow label="Travellers" value={formatTravellers(trip.travellers) ?? "Not set"} />
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, py: 1.25 }}>
-          <Typography sx={{ fontSize: 14, color: colors.textMuted }}>Trip type</Typography>
+          <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Trip type</Typography>
           {trip.tripTypes.length > 0 ? (
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "flex-end" }}>
               {trip.tripTypes.map((type) => <Chip key={type} label={tripTypeLabel(type)} size="small" />)}
@@ -94,9 +94,9 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
       </Box>
 
       {trip.invitedEmails.length > 0 && (
-        <Box sx={{ bgcolor: colors.surface, borderRadius: 4, boxShadow: colors.cardShadow, p: 2.75, maxWidth: 560 }}>
+        <Box sx={{ bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 2.75, maxWidth: 560 }}>
           <Typography component="h2" sx={{ fontSize: 14, fontWeight: 700, mb: 0.5 }}>Invited travellers</Typography>
-          <Typography sx={{ fontSize: 13, color: colors.textMuted, mb: 1.5 }}>
+          <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 1.5 }}>
             Saved with the trip. Invites aren't sent yet: that comes with Shared trips.
           </Typography>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
