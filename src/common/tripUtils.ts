@@ -39,6 +39,13 @@ export const currencyOptions: { code: string; label: string }[] = [
 
 export const DEFAULT_CURRENCY = "USD";
 
+// "$", "₹", "€", "£", "¥", and "A$" / "CA$" for dollars that would otherwise look the same.
+// Comes from Intl, so no hand-maintained symbol table.
+export function currencySymbol(code: string): string {
+  const parts = new Intl.NumberFormat("en-US", { style: "currency", currency: code }).formatToParts(0);
+  return parts.find((part) => part.type === "currency")?.value ?? code;
+}
+
 // Intl.NumberFormat picks the right symbol and grouping (e.g. $3,000, ₹3,000, €3,000).
 // Formatters are cached because creating them is relatively expensive.
 const formatters = new Map<string, Intl.NumberFormat>();
