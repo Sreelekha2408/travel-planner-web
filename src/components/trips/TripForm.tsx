@@ -1,7 +1,7 @@
-import { Alert, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, TextField, Typography } from "@mui/material";
+import { Alert, AvatarGroup, Box, Button, Chip, FormControl, FormLabel, InputAdornment, MenuItem, TextField, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { type Dayjs } from "dayjs";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link as RouterLink, useBlocker } from "react-router-dom";
 import { gradients } from "../../common/theme";
@@ -21,6 +21,7 @@ import { useNotify } from "../../context/useNotify";
 import CurrencyPicker from "./CurrencyPicker";
 import DiscardChangesDialog from "./DiscardChangesDialog";
 import InviteEmailsField from "./InviteEmailsField";
+import { InviteeAvatar } from "./TravellerList";
 
 // Form state differs from the API shape: pickers hold Dayjs objects and inputs hold strings.
 // toTripInput() converts on submit.
@@ -77,7 +78,7 @@ function getSaveErrorMessage(error: unknown): string {
 // One line of the summary card: an emoji, a muted label and the value in white.
 // Rendered as <dt>/<dd> inside a <dl>, the semantic element for label–value pairs.
 // The emoji is decorative (aria-hidden): the label already says what the row is.
-const SummaryRow = ({ emoji, label, value }: { emoji: string; label: string; value: string }) => (
+const SummaryRow = ({ emoji, label, value }: { emoji: string; label: string; value: ReactNode }) => (
   <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
     <Box component="span" aria-hidden sx={{ fontSize: 18, lineHeight: 1, width: 22, textAlign: "center", flexShrink: 0 }}>
       {emoji}
@@ -122,9 +123,9 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
   }, [isDirty]);
 
   // Drives the live "Trip summary" card.
-  const [title, destination, startDate, endDate, budget, currency, travellers, tripTypes] = useWatch({
+  const [title, destination, startDate, endDate, budget, currency, travellers, tripTypes, invitedEmails] = useWatch({
     control,
-    name: ["title", "destination", "startDate", "endDate", "budget", "currency", "travellers", "tripTypes"],
+    name: ["title", "destination", "startDate", "endDate", "budget", "currency", "travellers", "tripTypes", "invitedEmails"],
   });
   const summaryDates =
     startDate?.isValid() && endDate?.isValid() && !endDate.isBefore(startDate, "day")
@@ -358,7 +359,27 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
           render={({ field }) => <InviteEmailsField value={field.value} onChange={field.onChange} />}
         />
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 1.5, pt: 2, borderTop: 1, borderColor: "divider" }}>
+        {/* Sticks to the bottom of the screen so Save is always in reach, however long the
+            form gets. The negative margins stretch it to the card's edges. */}
+        <Box
+          sx={{
+            position: "sticky",
+            bottom: 0,
+            zIndex: 1,
+            mx: { xs: -2.5, sm: -3.5 },
+            mb: { xs: -2.5, sm: -3.5 },
+            px: { xs: 2.5, sm: 3.5 },
+            py: 2,
+            bgcolor: "background.paper",
+            borderTop: 1,
+            borderColor: "divider",
+            borderRadius: "0 0 16px 16px",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+            gap: 1.5,
+          }}
+        >
           <Button component={RouterLink} to="/trips" variant="outlined" disabled={isSubmitting}>
             Cancel
           </Button>
@@ -391,6 +412,23 @@ const TripForm = ({ trip, submitLabel, submittingLabel, onSubmit }: TripFormProp
             <SummaryRow emoji="👥" label="Travellers" value={formatTravellers(Number(travellers)) ?? ""} />
             {tripTypes.length > 0 && (
               <SummaryRow emoji="🏷️" label="Trip type" value={sortTripTypes(tripTypes).map(tripTypeWithEmoji).join(" · ")} />
+            )}
+            {invitedEmails.length > 0 && (
+              <SummaryRow
+                emoji="🧑‍🤝‍🧑"
+                label={`Invited (${invitedEmails.length})`}
+                value={
+                  // Overlapping avatars like the design's avatar stack; past five it shows "+N".
+                  <AvatarGroup
+                    max={5}
+                    sx={{ justifyContent: "flex-end", mt: 0.5, "& .MuiAvatar-root": { width: 28, height: 28, fontSize: 11, borderColor: "primary.main" } }}
+                  >
+                    {invitedEmails.map((email) => (
+                      <InviteeAvatar key={email} email={email} size={28} />
+                    ))}
+                  </AvatarGroup>
+                }
+              />
             )}
           </Box>
         </Box>

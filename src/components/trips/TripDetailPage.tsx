@@ -38,8 +38,20 @@ const DetailRow = ({ emoji, label, children }: { emoji: string; label: string; c
 
 const cardSx = { bgcolor: "background.paper", borderRadius: 4, boxShadow: 1, p: 2.75 };
 
-// The design's 36px translucent squares
-const headerIconButtonSx = { width: 36, height: 36, borderRadius: 2.5, fontSize: 16, bgcolor: "brand.glass", "&:hover": { bgcolor: "brand.glassStrong" } };
+// The design's 36px squares with emoji. A dark tile (rather than the lighter glass) and a
+// soft shadow keep the emoji's own colours visible on the indigo header.
+const headerIconButtonSx = {
+  width: 36,
+  height: 36,
+  borderRadius: 2.5,
+  fontSize: 18,
+  // IconButton's default colour is 54%-opacity black, and browsers apply that opacity to
+  // colour emoji too, which made them look faded. Any opaque colour fixes it.
+  color: "common.white",
+  bgcolor: "rgba(26, 35, 126, 0.45)",
+  "& span": { filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35))" },
+  "&:hover": { bgcolor: "rgba(26, 35, 126, 0.65)" },
+};
 
 const TripDetail = ({ trip }: { trip: Trip }) => {
   const [shareOpen, setShareOpen] = useState(false);
@@ -99,7 +111,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
             </Box>
           </Box>
         </Box>
-        {/* Edit + Share as emoji icon buttons, top-right as in the design */}
+        {/* Edit + Share as emoji icon squares, top-right as in the design */}
         <Box sx={{ position: "absolute", top: { xs: 20, sm: 24 }, right: { xs: 20, sm: 24 }, display: "flex", gap: 1 }}>
           <Tooltip title="Edit trip">
             <IconButton component={RouterLink} to={`/trips/${trip.tripId}/edit`} aria-label="Edit trip" sx={headerIconButtonSx}>

@@ -1,7 +1,7 @@
 import { Box, Button, TextField } from "@mui/material";
 import { useState, type KeyboardEvent } from "react";
 import { EMAIL_PATTERN } from "../../common/tripUtils";
-import InviteeList from "./InviteeList";
+import TravellerList from "./TravellerList";
 
 const MAX_INVITES = 20; // same limit as the backend
 
@@ -60,7 +60,8 @@ const InviteEmailsField = ({
         />
         <Button variant="outlined" onClick={add} sx={{ height: 46 }}>Add</Button>
       </Box>
-      <InviteeList emails={value} onRemove={(email) => onChange(value.filter((e) => e !== email))} />
+      {/* Short (about three and a half rows) so the form and dialog don't grow with every invite */}
+      <TravellerList emails={value} onRemove={(email) => onChange(value.filter((e) => e !== email))} maxHeight={180} />
     </Box>
   );
 };
