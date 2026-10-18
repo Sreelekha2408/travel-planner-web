@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { Trip } from "../services/tripService";
-import { destinationCode, formatBudget, formatTravellers, getTripStatus, sortTrips, tripCountdown, tripEmoji, tripLengthInDays } from "./tripUtils";
+import {
+  destinationCode,
+  formatBudget,
+  formatTravellers,
+  getTripStatus,
+  sortTrips,
+  tripCountdown,
+  tripEmoji,
+  tripLengthInDays,
+  tripProgress,
+} from "./tripUtils";
 
 const today = "2026-10-18";
 
@@ -98,6 +108,41 @@ describe("tripCountdown", () => {
     ["2026-09-01", "2026-09-28", "Ended 3 weeks ago"],
   ])("%s to %s is '%s' on 2026-10-18", (startDate, endDate, expected) => {
     expect(tripCountdown({ startDate, endDate }, today)).toBe(expected);
+  });
+});
+
+describe("tripProgress", () => {
+  const upcoming = { startDate: "2026-12-20", endDate: "2026-12-24" };
+
+  it("counts planning steps for upcoming trips and names what's missing", () => {
+    expect(tripProgress({ ...upcoming, source: null, budget: null, tripTypes: [] }, today)).toEqual({
+      label: "Planning",
+      percent: 25,
+      tone: "primary",
+      detail: "Add a starting point, a budget, a trip type to finish planning",
+    });
+    expect(tripProgress({ ...upcoming, source: "Pune", budget: 500, tripTypes: [] }, today).percent).toBe(75);
+    expect(tripProgress({ ...upcoming, source: "Pune", budget: 500, tripTypes: ["BEACH"] }, today)).toMatchObject({
+      percent: 100,
+      detail: "All planning details added",
+    });
+  });
+
+  it("shows how far through an ongoing trip we are", () => {
+    expect(tripProgress({ startDate: "2026-10-16", endDate: "2026-10-24", source: null, budget: null, tripTypes: [] }, today)).toEqual({
+      label: "In progress",
+      percent: 33,
+      tone: "warning",
+      detail: "Day 3 of 9",
+    });
+  });
+
+  it("is 100% for completed trips", () => {
+    expect(tripProgress({ startDate: "2026-09-01", endDate: "2026-09-05", source: null, budget: null, tripTypes: [] }, today)).toMatchObject({
+      label: "Completed",
+      percent: 100,
+      tone: "success",
+    });
   });
 });
 

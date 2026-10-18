@@ -100,6 +100,44 @@ export function tripEmoji(trip: Pick<Trip, "tripTypes">): string {
   return tripTypeOptions.find((option) => option.value === first)?.emoji ?? "✈️";
 }
 
+export type TripProgress = {
+  label: string; // "Planning" | "In progress" | "Completed"
+  percent: number;
+  tone: "primary" | "warning" | "success";
+  detail: string; // explains the number (tooltip / screen readers)
+};
+
+// The progress bar on trip cards (from the design: "Planning 75%", "Completed 100%").
+// Upcoming: share of planning steps done. Ongoing: how far through the trip.
+// Completed: 100%. Itinerary and expenses can become planning steps once they exist.
+export function tripProgress(
+  trip: Pick<Trip, "startDate" | "endDate" | "source" | "budget" | "tripTypes">,
+  today = dayjs().format("YYYY-MM-DD"),
+): TripProgress {
+  const status = getTripStatus(trip, today);
+  if (status === "completed") {
+    return { label: "Completed", percent: 100, tone: "success", detail: "This trip is over" };
+  }
+  if (status === "ongoing") {
+    const length = tripLengthInDays(trip.startDate, trip.endDate);
+    const day = dayjs(today).diff(dayjs(trip.startDate), "day") + 1;
+    return { label: "In progress", percent: Math.round((day / length) * 100), tone: "warning", detail: `Day ${day} of ${length}` };
+  }
+  const steps = [
+    { name: "trip basics", done: true }, // name, destination and dates are required
+    { name: "a starting point", done: Boolean(trip.source?.trim()) },
+    { name: "a budget", done: trip.budget != null },
+    { name: "a trip type", done: trip.tripTypes.length > 0 },
+  ];
+  const missing = steps.filter((step) => !step.done).map((step) => step.name);
+  return {
+    label: "Planning",
+    percent: Math.round(((steps.length - missing.length) / steps.length) * 100),
+    tone: "primary",
+    detail: missing.length > 0 ? `Add ${missing.join(", ")} to finish planning` : "All planning details added",
+  };
+}
+
 // "3 days", "2 weeks", "4 months": coarse units for countdowns.
 function roughDuration(days: number): string {
   if (days < 14) return `${days} ${days === 1 ? "day" : "days"}`;

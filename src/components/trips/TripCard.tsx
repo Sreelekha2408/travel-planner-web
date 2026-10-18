@@ -1,4 +1,4 @@
-import { Box, Card, CardActionArea, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material";
+import { Box, Card, CardActionArea, IconButton, LinearProgress, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 import EditOutlined from "@mui/icons-material/EditOutlined";
@@ -6,7 +6,15 @@ import MoreHoriz from "@mui/icons-material/MoreHoriz";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { gradients } from "../../common/theme";
-import { destinationCode, formatBudget, formatDateRange, formatTravellers, getTripStatus } from "../../common/tripUtils";
+import {
+  destinationCode,
+  formatBudget,
+  formatDateRange,
+  formatTravellers,
+  getTripStatus,
+  tripEmoji,
+  tripProgress,
+} from "../../common/tripUtils";
 import type { Trip } from "../../services/tripService";
 import TripStatusChip from "./TripStatusChip";
 
@@ -20,15 +28,33 @@ type TripCardProps = {
 const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const travellers = formatTravellers(trip.travellers);
+  const progress = tripProgress(trip);
 
   const closeMenu = () => setMenuAnchor(null);
 
   return (
-    <Card sx={{ position: "relative", borderRadius: 4, boxShadow: 1 }}>
+    <Card
+      sx={{
+        position: "relative",
+        borderRadius: 4,
+        boxShadow: 1,
+        transition: "transform 150ms ease, box-shadow 150ms ease",
+        // Subtle lift on hover so cards read as clickable (skipped if the user prefers less motion).
+        "&:hover": { transform: "translateY(-2px)", boxShadow: "0 8px 24px rgba(92, 107, 192, 0.18)" },
+        "@media (prefers-reduced-motion: reduce)": { transition: "none", "&:hover": { transform: "none" } },
+      }}
+    >
       {/* The whole card links to the trip; the menu button sits outside the link
           because a button inside an <a> is invalid HTML and confuses screen readers. */}
       <CardActionArea component={RouterLink} to={`/trips/${trip.tripId}`}>
         <Box sx={{ height: 120, background: gradients.tripCovers[trip.tripId % gradients.tripCovers.length] /* picked by id so a card keeps its colour */, position: "relative" }}>
+          {/* Trip emoji (from the first trip type), as on the design's cards */}
+          <Box
+            aria-hidden
+            sx={{ position: "absolute", top: 12, left: 12, width: 40, height: 40, borderRadius: "50%", bgcolor: "brand.glassStrong", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}
+          >
+            {tripEmoji(trip)}
+          </Box>
           <Box sx={{ position: "absolute", top: 12, right: 12 }}>
             <TripStatusChip status={getTripStatus(trip)} />
           </Box>
@@ -41,12 +67,29 @@ const TripCard = ({ trip, onEdit, onDelete }: TripCardProps) => {
         </Box>
         <Box sx={{ p: 2, pr: 6 }}>
           <Typography noWrap sx={{ fontSize: 16, fontWeight: 700 }}>{trip.title}</Typography>
-          <Typography noWrap sx={{ fontSize: 13, color: "text.secondary", mt: 0.25 }}>{trip.destination}</Typography>
+          <Typography noWrap sx={{ fontSize: 13, color: "text.secondary", mt: 0.25 }}>📍 {trip.destination}</Typography>
           <Typography component="div" sx={{ display: "flex", flexWrap: "wrap", columnGap: 1.75, rowGap: 0.5, mt: 1.25, fontSize: 12, color: "brand.nav" }}>
-            <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
-            {travellers && <span>{travellers}</span>}
-            <span>{formatBudget(trip.budget, trip.currency)}</span>
+            <span>📅 {formatDateRange(trip.startDate, trip.endDate)}</span>
+            {travellers && <span>👥 {travellers}</span>}
+            {trip.budget != null && <span>💰 {formatBudget(trip.budget, trip.currency)}</span>}
           </Typography>
+
+          {/* Progress, as in the design ("Planning 75%"); the tooltip explains the number. */}
+          <Tooltip title={progress.detail} placement="top">
+            <Box sx={{ mt: 1.75 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", fontSize: 12, mb: 0.75 }}>
+                <Typography component="span" sx={{ fontSize: 12, color: "brand.nav" }}>{progress.label}</Typography>
+                <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: `${progress.tone}.main` }}>{progress.percent}%</Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={progress.percent}
+                color={progress.tone}
+                aria-label={`${progress.label}: ${progress.percent}%. ${progress.detail}`}
+                sx={{ height: 6, borderRadius: 3, bgcolor: "divider", "& .MuiLinearProgress-bar": { borderRadius: 3 } }}
+              />
+            </Box>
+          </Tooltip>
         </Box>
       </CardActionArea>
 
