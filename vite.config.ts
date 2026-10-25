@@ -29,9 +29,9 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     proxy: {
-      // The Spring Boot API has no common prefix and owns /dashboard, which is also a
-      // frontend route. Prefixing API calls with /api avoids that clash; the prefix is
-      // stripped before forwarding. Same-origin in the browser, so no CORS in dev.
+      // The Spring Boot API has no common prefix (/users, /trip, /expenses...), so its paths
+      // could clash with frontend routes. Prefixing API calls with /api avoids that; the
+      // prefix is stripped before forwarding. Same-origin in the browser, so no CORS in dev.
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
