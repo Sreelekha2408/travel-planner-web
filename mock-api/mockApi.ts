@@ -1,6 +1,6 @@
 // Dev-only mock of the API, enabled with `npm run dev:mock`: the auth endpoints
-// (/users/login, /users/me, /users/logout), trips (/trip/*) and itineraries
-// (/itineraries/*), kept in memory.
+// (/users/login, /users/me, /users/logout), trips (/trip/*), itineraries
+// (/itineraries/*) and expenses (/expenses/*), kept in memory.
 // It is a real HTTP handler inside the Vite dev server, so it sends real Set-Cookie
 // headers: you can inspect the HttpOnly session cookie in DevTools > Application > Cookies.
 // It mirrors what the Spring Boot backend does (see docs/AUTH.md); delete it once the
@@ -183,6 +183,11 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     return handleItineraries(req, method, path, reply);
   }
 
+  if (path.startsWith("/expenses")) {
+    if (!isLoggedIn(cookies)) return reply(401, { message: "Not authenticated" });
+    return handleExpenses(req, method, path, reply);
+  }
+
   return reply(404, { message: "Not found" });
 }
 
@@ -269,6 +274,84 @@ async function handleItineraries(
   return reply(404, { message: "Not found" });
 }
 
+type MockExpense = {
+  expenseId: number;
+  title: string;
+  amount: number;
+  category: string;
+  currency: string;
+  paymentMethod: string | null;
+  expenseDate: string;
+  tripId: number;
+};
+
+// Sample spending for Paris (ongoing) and Bali (upcoming, booked in advance).
+let nextExpenseId = 8;
+const expenses: MockExpense[] = [
+  { expenseId: 1, title: "Eurostar tickets", amount: 180, category: "TRANSPORT", currency: "EUR", paymentMethod: "Card", expenseDate: daysFromToday(-2), tripId: 2 },
+  { expenseId: 2, title: "Hôtel des Grands Boulevards (7 nights)", amount: 840, category: "HOTEL", currency: "EUR", paymentMethod: "Card", expenseDate: daysFromToday(-2), tripId: 2 },
+  { expenseId: 3, title: "Louvre tickets", amount: 44, category: "ACTIVITIES", currency: "EUR", paymentMethod: "Card", expenseDate: daysFromToday(-1), tripId: 2 },
+  { expenseId: 4, title: "Croissants and coffee", amount: 18, category: "FOOD", currency: "EUR", paymentMethod: "Cash", expenseDate: daysFromToday(-1), tripId: 2 },
+  { expenseId: 5, title: "Dinner at Le Comptoir", amount: 90, category: "FOOD", currency: "EUR", paymentMethod: "Card", expenseDate: daysFromToday(0), tripId: 2 },
+  { expenseId: 6, title: "Flight SQ 423", amount: 380, category: "FLIGHT", currency: "USD", paymentMethod: "Card", expenseDate: daysFromToday(-10), tripId: 1 },
+  { expenseId: 7, title: "Alaya Resort deposit", amount: 220, category: "HOTEL", currency: "USD", paymentMethod: "Card", expenseDate: daysFromToday(-8), tripId: 1 },
+];
+
+const EXPENSE_CATEGORIES = ["FLIGHT", "TRANSPORT", "HOTEL", "FOOD", "ACTIVITIES", "SHOPPING", "OTHER"];
+
+// Same rules as ExpenseRequest's annotations in the backend (first problem only).
+function validateExpense(body: Partial<MockExpense> | undefined): string | null {
+  if (!body?.title?.trim()) return "Title is required";
+  if (!body.amount || body.amount <= 0) return "Amount must be more than 0";
+  if (!body.category || !EXPENSE_CATEGORIES.includes(body.category)) return "Category is required";
+  if (!body.expenseDate) return "Date is required";
+  return null;
+}
+
+// Newest first, like ExpenseService.getAllExpenses.
+const byNewest = (a: MockExpense, b: MockExpense) => b.expenseDate.localeCompare(a.expenseDate) || b.expenseId - a.expenseId;
+
+// Mirrors ExpenseController/ExpenseService. Like itineraries, a missing trip and someone
+// else's trip are the same 404.
+async function handleExpenses(
+  req: IncomingMessage,
+  method: string,
+  path: string,
+  reply: (status: number, body?: unknown) => void,
+) {
+  const match = /^\/expenses\/(\d+)$/.exec(path);
+  if (!match) return reply(404, { message: "Not found" });
+  const id = Number(match[1]);
+
+  // GET and POST take a trip id; PUT and DELETE take an expense id (same URL shape).
+  if (method === "GET" || method === "POST") {
+    const trip = trips.find((t) => t.tripId === id);
+    if (!trip) return reply(404, { message: "Trip not found" });
+    if (method === "GET") return reply(200, expenses.filter((e) => e.tripId === id).sort(byNewest));
+    const body = (await readJson(req)) as Partial<MockExpense> | undefined;
+    const error = validateExpense(body);
+    if (error) return reply(400, { message: error });
+    const created: MockExpense = { ...(body as MockExpense), paymentMethod: body?.paymentMethod ?? null, currency: body?.currency ?? trip.currency ?? "INR", expenseId: nextExpenseId++, tripId: id };
+    expenses.push(created);
+    return reply(200, created);
+  }
+
+  const index = expenses.findIndex((e) => e.expenseId === id);
+  if (index === -1) return reply(404, { message: "Expense not found" });
+  if (method === "PUT") {
+    const body = (await readJson(req)) as Partial<MockExpense> | undefined;
+    const error = validateExpense(body);
+    if (error) return reply(400, { message: error });
+    expenses[index] = { ...expenses[index], ...(body as MockExpense), currency: body?.currency ?? expenses[index].currency, expenseId: id, tripId: expenses[index].tripId };
+    return reply(200, expenses[index]);
+  }
+  if (method === "DELETE") {
+    expenses.splice(index, 1);
+    return reply(200, `Expense deleted with id: ${id}`);
+  }
+  return reply(404, { message: "Not found" });
+}
+
 // Same list as TripService in the backend and the frontend's currency picker.
 const SUPPORTED_CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "SGD", "AED"];
 
@@ -329,9 +412,10 @@ async function handleTrips(
   }
 
   if (method === "DELETE") {
-    // Like TripService.deleteTrip: the trip's itinerary goes with it.
+    // Like TripService.deleteTrip: the trip's itinerary and expenses go with it.
     const tripId = trips[index].tripId;
     for (let i = itineraryItems.length - 1; i >= 0; i--) if (itineraryItems[i].tripId === tripId) itineraryItems.splice(i, 1);
+    for (let i = expenses.length - 1; i >= 0; i--) if (expenses[i].tripId === tripId) expenses.splice(i, 1);
     trips.splice(index, 1);
     return reply(204);
   }
@@ -344,7 +428,7 @@ export function mockApi(): Plugin {
     name: "mock-api",
     configureServer(server) {
       // Registered directly (not in a returned hook), so it runs before Vite's /api proxy.
-      for (const prefix of ["/api/users", "/api/trip", "/api/itineraries"]) {
+      for (const prefix of ["/api/users", "/api/trip", "/api/itineraries", "/api/expenses"]) {
         server.middlewares.use(prefix, (req, res) => {
           handleRequest(req, res).catch(() => send(res, 500, { message: "Mock server error" }));
         });

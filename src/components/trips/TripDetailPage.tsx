@@ -2,7 +2,7 @@ import { Box, Chip, IconButton, Link, Skeleton, Tab, Tabs, Tooltip, Typography }
 import ArrowBackIosNew from "@mui/icons-material/ArrowBackIosNew";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import ShareOutlined from "@mui/icons-material/ShareOutlined";
-import { useState, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { gradients } from "../../common/theme";
 import {
@@ -24,6 +24,7 @@ import ShareTripDialog from "./ShareTripDialog";
 import TravellersCard from "./TravellersCard";
 import TripStatusChip from "./TripStatusChip";
 import ItineraryTimeline from "../itinerary/ItineraryTimeline";
+import BudgetTrackerCard from "../expenses/BudgetTrackerCard";
 
 const headerBadgeSx = { bgcolor: "brand.glass", color: "common.white", fontWeight: 600, fontSize: 13, height: 28, px: 0.5 };
 
@@ -53,8 +54,12 @@ const headerIconButtonSx = {
   "&:hover": { bgcolor: "brand.soft" },
 };
 
+// Loaded only when the Expenses tab opens: it brings the charts library (MUI X Charts),
+// which would otherwise add ~70 KB (gzipped) to every trip page.
+const TripExpenses = lazy(() => import("../expenses/TripExpenses"));
+
 // Tabs with their own URL, so Back, refresh and links land on the same tab.
-export type TripTab = "overview" | "itinerary";
+export type TripTab = "overview" | "itinerary" | "expenses";
 
 const TripDetail = ({ trip, tab }: { trip: Trip; tab: TripTab }) => {
   const [shareOpen, setShareOpen] = useState(false);
@@ -129,19 +134,22 @@ const TripDetail = ({ trip, tab }: { trip: Trip; tab: TripTab }) => {
         </Box>
       </Box>
 
-      {/* Each tab is a link; Expenses and Packing are placeholders for later steps. */}
+      {/* Each tab is a link; Packing is a placeholder for later. */}
       <Tabs value={tab} aria-label="Trip sections" variant="scrollable" scrollButtons={false}>
         <Tab value="overview" label="Overview" component={RouterLink} to={`/trips/${trip.tripId}`} />
         <Tab value="itinerary" label="Itinerary" component={RouterLink} to={`/trips/${trip.tripId}/itinerary`} />
-        {["Expenses", "Packing"].map((label) => (
-          <Tab key={label} value={label} disabled label={<span>{label} <Chip label="Soon" size="small" sx={{ height: 18, fontSize: 10, ml: 0.5 }} /></span>} />
-        ))}
+        <Tab value="expenses" label="Expenses" component={RouterLink} to={`/trips/${trip.tripId}/expenses`} />
+        <Tab value="packing" disabled label={<span>Packing <Chip label="Soon" size="small" sx={{ height: 18, fontSize: 10, ml: 0.5 }} /></span>} />
       </Tabs>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 280px" }, gap: 3, alignItems: "start" }}>
-        {tab === "itinerary" ? (
-          <ItineraryTimeline trip={trip} />
-        ) : (
+        {tab === "itinerary" && <ItineraryTimeline trip={trip} />}
+        {tab === "expenses" && (
+          <Suspense fallback={<Skeleton variant="rounded" height={240} sx={{ borderRadius: 3 }} aria-label="Loading expenses" />}>
+            <TripExpenses trip={trip} />
+          </Suspense>
+        )}
+        {tab === "overview" && (
           <Box sx={cardSx}>
             <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700, mb: 1 }}>Trip details</Typography>
             <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
@@ -166,7 +174,11 @@ const TripDetail = ({ trip, tab }: { trip: Trip; tab: TripTab }) => {
           </Box>
         )}
 
-        <TravellersCard trip={trip} />
+        {/* Right column on every tab, as in the design: budget, then who's going */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <BudgetTrackerCard trip={trip} />
+          <TravellersCard trip={trip} />
+        </Box>
       </Box>
 
       {/* key: remount on open so the dialog starts from the saved invites */}
@@ -189,7 +201,7 @@ const TripDetailLoader = ({ tripId, tab }: { tripId: number; tab: TripTab }) => 
   return <TripDetail trip={trip} tab={tab} />;
 };
 
-// /trips/:tripId (Overview) and /trips/:tripId/itinerary share this page.
+// /trips/:tripId (Overview), /trips/:tripId/itinerary and /trips/:tripId/expenses share this page.
 const TripDetailPage = ({ tab = "overview" }: { tab?: TripTab }) => {
   const id = Number(useParams().tripId);
   if (!Number.isInteger(id)) return <TripLoadError error={new ApiError(404, "Not found")} />;

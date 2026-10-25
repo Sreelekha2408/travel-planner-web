@@ -1,55 +1,17 @@
-import { Alert, Box, Button, ButtonBase, Skeleton, Typography } from "@mui/material";
+import { Alert, Box, Button, Skeleton, Typography } from "@mui/material";
 import AddRounded from "@mui/icons-material/AddRounded";
-import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import { useQueries } from "@tanstack/react-query";
 import { Link as RouterLink } from "react-router-dom";
-import { formatDateRange, getTripStatus, sortTrips, tripEmoji } from "../../common/tripUtils";
+import { sortTrips } from "../../common/tripUtils";
 import { itineraryKeys } from "../../services/itineraryQueries";
 import { getItinerary } from "../../services/itineraryService";
 import { useTrips } from "../../services/tripQueries";
-import type { Trip } from "../../services/tripService";
-import TripStatusChip from "../trips/TripStatusChip";
+import TripPickerRow from "../common/TripPickerRow";
 
-const activityCount = (count: number | undefined) =>
-  count === undefined ? "…" : count === 0 ? "No activities yet" : `${count} ${count === 1 ? "activity" : "activities"}`;
-
-// One trip in the list: emoji, name, dates and status, how much is planned, and a chevron.
-const TripRow = ({ trip, count }: { trip: Trip; count: number | undefined }) => (
-  <ButtonBase
-    component={RouterLink}
-    to={`/trips/${trip.tripId}/itinerary`}
-    sx={{
-      width: "100%",
-      justifyContent: "flex-start",
-      textAlign: "left",
-      gap: 1.75,
-      bgcolor: "background.paper",
-      borderRadius: 3.5,
-      boxShadow: 1,
-      px: 2,
-      py: 1.75,
-      transition: "box-shadow 0.15s",
-      "&:hover": { boxShadow: 4 },
-      "&:focus-visible": { outline: 2, outlineColor: "primary.main", outlineOffset: 2 },
-    }}
-  >
-    <Box aria-hidden sx={{ width: 44, height: 44, borderRadius: "50%", bgcolor: "brand.soft", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-      {tripEmoji(trip)}
-    </Box>
-    <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-        <Typography noWrap sx={{ fontSize: 15, fontWeight: 700 }}>{trip.title}</Typography>
-        <TripStatusChip status={getTripStatus(trip)} />
-      </Box>
-      <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 0.25 }}>
-        📍 {trip.destination} · 📅 {formatDateRange(trip.startDate, trip.endDate)}
-      </Typography>
-    </Box>
-    <Typography sx={{ fontSize: 13, fontWeight: 600, color: count ? "primary.main" : "text.secondary", whiteSpace: "nowrap" }}>
-      {activityCount(count)}
-    </Typography>
-    <ChevronRightRounded sx={{ color: "text.secondary" }} />
-  </ButtonBase>
+const ActivityCount = ({ count }: { count: number | undefined }) => (
+  <Box component="span" sx={{ color: count ? "primary.main" : "text.secondary" }}>
+    {count === undefined ? "…" : count === 0 ? "No activities yet" : `${count} ${count === 1 ? "activity" : "activities"}`}
+  </Box>
 );
 
 // The sidebar's "Itinerary": pick a trip to plan. Each trip's itinerary is fetched to show
@@ -93,7 +55,11 @@ const ItineraryPage = () => {
         <Box component="ul" aria-label="Trips" sx={{ listStyle: "none", m: 0, p: 0, display: "flex", flexDirection: "column", gap: 1.5 }}>
           {sortTrips(trips).map((trip) => (
             <li key={trip.tripId}>
-              <TripRow trip={trip} count={counts[trips.indexOf(trip)]?.data} />
+              <TripPickerRow
+                trip={trip}
+                to={`/trips/${trip.tripId}/itinerary`}
+                summary={<ActivityCount count={counts[trips.indexOf(trip)]?.data} />}
+              />
             </li>
           ))}
         </Box>

@@ -53,6 +53,29 @@ export const activityColors = {
   transport: { icon: "#00695C", tile: "#E0F2F1" },
 };
 
+// Expense categories: the icon tile (design's .expense-cat-icon, a light tint) and the slice
+// colour in the spending chart. Chart colours come from a colour-blind-checked categorical
+// palette, one fixed colour per category so a category keeps its colour whatever its rank.
+// With 7 categories no palette keeps every pair distinct for colour-blind readers, so the
+// chart never relies on colour alone: the legend and tooltip always name the category.
+export const expenseColors = {
+  HOTEL: { tile: "#E3F2FD", chart: "#2a78d6" }, // blue
+  FOOD: { tile: "#FFF3E0", chart: "#eb6834" }, // orange
+  TRANSPORT: { tile: "#E0F2F1", chart: "#1baf7a" }, // aqua
+  ACTIVITIES: { tile: "#FFF8E1", chart: "#eda100" }, // yellow
+  SHOPPING: { tile: "#FCE4EC", chart: "#e87ba4" }, // magenta
+  OTHER: { tile: "#E8F5E9", chart: "#008300" }, // green
+  FLIGHT: { tile: "#EDE7F6", chart: "#6250d6" }, // violet
+};
+
+// Budget tracker bar (design's .budget-bar-*): orange for spent, grey for what's left.
+export const budgetColors = {
+  spent: "linear-gradient(90deg, #FF7043, #FF8A65)",
+  spentDot: "#FF7043",
+  remaining: "#E5E7EB",
+  over: "#D32F2F",
+};
+
 // Avatar colours for people (invitees): a light tint with a dark letter, each pair above
 // 4.5:1 contrast. Which pair a person gets comes from colorIndex() in tripUtils.
 export const avatarColors = [

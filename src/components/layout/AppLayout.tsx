@@ -21,7 +21,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", to: "/dashboard", icon: <GridViewOutlined fontSize="small" /> },
   { label: "My trips", to: "/trips", icon: <LuggageOutlined fontSize="small" /> },
   { label: "Itinerary", to: "/itinerary", icon: <CalendarMonthOutlined fontSize="small" /> },
-  { label: "Expenses", to: "/expenses", icon: <AccountBalanceWalletOutlined fontSize="small" />, comingSoon: true },
+  { label: "Expenses", to: "/expenses", icon: <AccountBalanceWalletOutlined fontSize="small" /> },
   { label: "Packing list", to: "/packing", icon: <CheckBoxOutlined fontSize="small" />, comingSoon: true },
   { label: "Shared trips", to: "/shared", icon: <GroupOutlined fontSize="small" />, comingSoon: true },
 ];
