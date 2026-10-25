@@ -29,6 +29,7 @@ const ComingSoon = lazy(() => import('./components/layout/ComingSoon'));
 const TripsPage = lazy(() => import('./components/trips/TripsPage'));
 const TripFormPage = lazy(() => import('./components/trips/TripFormPage'));
 const TripDetailPage = lazy(() => import('./components/trips/TripDetailPage'));
+const ItineraryPage = lazy(() => import('./components/itinerary/ItineraryPage'));
 
 // Fallback for lazy pages outside the app layout (e.g. sign-up).
 const RootLayout = () => (
@@ -51,8 +52,9 @@ const router = createBrowserRouter(
           <Route path="/trips" element={<TripsPage />} />
           <Route path="/trips/new" element={<TripFormPage />} />
           <Route path="/trips/:tripId" element={<TripDetailPage />} />
+          <Route path="/trips/:tripId/itinerary" element={<TripDetailPage tab="itinerary" />} />
           <Route path="/trips/:tripId/edit" element={<TripFormPage />} />
-          <Route path="/itinerary" element={<ComingSoon title="Itinerary" />} />
+          <Route path="/itinerary" element={<ItineraryPage />} />
           <Route path="/expenses" element={<ComingSoon title="Expenses" />} />
           <Route path="/packing" element={<ComingSoon title="Packing list" />} />
           <Route path="/shared" element={<ComingSoon title="Shared trips" />} />

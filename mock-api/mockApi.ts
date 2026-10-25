@@ -1,5 +1,6 @@
 // Dev-only mock of the API, enabled with `npm run dev:mock`: the auth endpoints
-// (/users/login, /users/me, /users/logout) and trips (/trip/*), kept in memory.
+// (/users/login, /users/me, /users/logout), trips (/trip/*) and itineraries
+// (/itineraries/*), kept in memory.
 // It is a real HTTP handler inside the Vite dev server, so it sends real Set-Cookie
 // headers: you can inspect the HttpOnly session cookie in DevTools > Application > Cookies.
 // It mirrors what the Spring Boot backend does (see docs/AUTH.md); delete it once the
@@ -177,6 +178,94 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
     return handleTrips(req, method, path, reply);
   }
 
+  if (path.startsWith("/itineraries")) {
+    if (!isLoggedIn(cookies)) return reply(401, { message: "Not authenticated" });
+    return handleItineraries(req, method, path, reply);
+  }
+
+  return reply(404, { message: "Not found" });
+}
+
+type MockItineraryItem = {
+  itineraryItemId: number;
+  title: string;
+  description: string | null;
+  location: string | null;
+  activityType: string;
+  activityDate: string;
+  activityTime: string | null;
+  price: number;
+  tripId: number;
+};
+
+// Sample plans for Paris (ongoing) and Bali (upcoming), from the design's itinerary screen.
+let nextItineraryItemId = 7;
+const itineraryItems: MockItineraryItem[] = [
+  { itineraryItemId: 1, title: "Eurostar to Paris Gare du Nord", description: "Coach 7, seats 41–42", location: "London St Pancras", activityType: "TRANSPORT", activityDate: daysFromToday(-2), activityTime: "08:01:00", price: 180, tripId: 2 },
+  { itineraryItemId: 2, title: "Check-in · Hôtel des Grands Boulevards", description: null, location: "Rue Poissonnière", activityType: "HOTEL", activityDate: daysFromToday(-2), activityTime: "15:00:00", price: 240, tripId: 2 },
+  { itineraryItemId: 3, title: "Louvre (timed entry)", description: "Tickets in email", location: "Musée du Louvre", activityType: "ACTIVITY", activityDate: daysFromToday(0), activityTime: "10:00:00", price: 44, tripId: 2 },
+  { itineraryItemId: 4, title: "Dinner at Le Comptoir", description: "Reservation confirmed", location: "Saint-Germain", activityType: "FOOD", activityDate: daysFromToday(0), activityTime: "19:30:00", price: 90, tripId: 2 },
+  { itineraryItemId: 5, title: "Flight SQ 423 — Changi to Ngurah Rai", description: "Singapore Airlines · Economy", location: "Changi Airport", activityType: "FLIGHT", activityDate: daysFromToday(63), activityTime: "08:45:00", price: 380, tripId: 1 },
+  { itineraryItemId: 6, title: "Tegallalang Rice Terrace", description: "Guided tour · 3h", location: "Tegallalang", activityType: "ACTIVITY", activityDate: daysFromToday(64), activityTime: "09:00:00", price: 45, tripId: 1 },
+];
+
+const ACTIVITY_TYPES = ["FLIGHT", "HOTEL", "FOOD", "ACTIVITY", "TRANSPORT"];
+
+// Same rules as ItineraryRequest's annotations in the backend (first problem only).
+function validateItineraryItem(body: Partial<MockItineraryItem> | undefined): string | null {
+  if (!body?.title?.trim()) return "Title is required";
+  if (!body.activityType || !ACTIVITY_TYPES.includes(body.activityType)) return "Activity type is required";
+  if (!body.activityDate) return "Date is required";
+  if ((body.price ?? 0) < 0) return "Price can't be negative";
+  return null;
+}
+
+// Mirrors ItineraryController/ItineraryService. All demo trips belong to the one demo user,
+// so "someone else's trip" is just a missing one here: 404 either way, like the backend.
+async function handleItineraries(
+  req: IncomingMessage,
+  method: string,
+  path: string,
+  reply: (status: number, body?: unknown) => void,
+) {
+  const all = /^\/itineraries\/all\/(\d+)$/.exec(path);
+  if (all && method === "DELETE") {
+    const tripId = Number(all[1]);
+    if (!trips.some((trip) => trip.tripId === tripId)) return reply(404, { message: "Trip not found" });
+    for (let i = itineraryItems.length - 1; i >= 0; i--) if (itineraryItems[i].tripId === tripId) itineraryItems.splice(i, 1);
+    return reply(200, "Itineraries deleted");
+  }
+
+  const match = /^\/itineraries\/(\d+)$/.exec(path);
+  if (!match) return reply(404, { message: "Not found" });
+  const id = Number(match[1]);
+
+  // GET and POST take a trip id; PUT and DELETE take an item id (same URL shape).
+  if (method === "GET" || method === "POST") {
+    if (!trips.some((trip) => trip.tripId === id)) return reply(404, { message: "Trip not found" });
+    if (method === "GET") return reply(200, itineraryItems.filter((item) => item.tripId === id));
+    const body = (await readJson(req)) as Partial<MockItineraryItem>[] | undefined;
+    const list = Array.isArray(body) ? body : [];
+    const error = list.map(validateItineraryItem).find(Boolean);
+    if (error) return reply(400, { message: error });
+    const created = list.map((input) => ({ ...(input as MockItineraryItem), itineraryItemId: nextItineraryItemId++, tripId: id }));
+    itineraryItems.push(...created);
+    return reply(200, created);
+  }
+
+  const index = itineraryItems.findIndex((item) => item.itineraryItemId === id);
+  if (index === -1) return reply(404, { message: "Itinerary item not found" });
+  if (method === "PUT") {
+    const body = (await readJson(req)) as Partial<MockItineraryItem> | undefined;
+    const error = validateItineraryItem(body);
+    if (error) return reply(400, { message: error });
+    itineraryItems[index] = { ...itineraryItems[index], ...(body as MockItineraryItem), itineraryItemId: id, tripId: itineraryItems[index].tripId };
+    return reply(200, itineraryItems[index]);
+  }
+  if (method === "DELETE") {
+    itineraryItems.splice(index, 1);
+    return reply(200, "Itinerary deleted");
+  }
   return reply(404, { message: "Not found" });
 }
 
@@ -240,6 +329,9 @@ async function handleTrips(
   }
 
   if (method === "DELETE") {
+    // Like TripService.deleteTrip: the trip's itinerary goes with it.
+    const tripId = trips[index].tripId;
+    for (let i = itineraryItems.length - 1; i >= 0; i--) if (itineraryItems[i].tripId === tripId) itineraryItems.splice(i, 1);
     trips.splice(index, 1);
     return reply(204);
   }
@@ -252,7 +344,7 @@ export function mockApi(): Plugin {
     name: "mock-api",
     configureServer(server) {
       // Registered directly (not in a returned hook), so it runs before Vite's /api proxy.
-      for (const prefix of ["/api/users", "/api/trip"]) {
+      for (const prefix of ["/api/users", "/api/trip", "/api/itineraries"]) {
         server.middlewares.use(prefix, (req, res) => {
           handleRequest(req, res).catch(() => send(res, 500, { message: "Mock server error" }));
         });

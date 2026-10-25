@@ -43,11 +43,14 @@ export const gradients = {
   ],
 };
 
-// Icon tile colours for itinerary items (sign-up preview now, Itinerary page later).
+// Icon tile colours for itinerary activities (Itinerary tab and the sign-up preview).
+// Tiles follow the design's .icon-flight / .icon-hotel / .icon-food / .icon-tour.
 export const activityColors = {
-  flight: { icon: "#3949AB", tile: "#E8EAF6" },
+  flight: { icon: "#3949AB", tile: "#EDE7F6" },
   hotel: { icon: "#1565C0", tile: "#E3F2FD" },
   food: { icon: "#B85C00", tile: "#FFF3E0" },
+  activity: { icon: "#2E7D32", tile: "#E8F5E9" },
+  transport: { icon: "#00695C", tile: "#E0F2F1" },
 };
 
 // Avatar colours for people (invitees): a light tint with a dark letter, each pair above

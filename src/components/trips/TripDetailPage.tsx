@@ -23,6 +23,7 @@ import { TripLoadError } from "./TripFormPage";
 import ShareTripDialog from "./ShareTripDialog";
 import TravellersCard from "./TravellersCard";
 import TripStatusChip from "./TripStatusChip";
+import ItineraryTimeline from "../itinerary/ItineraryTimeline";
 
 const headerBadgeSx = { bgcolor: "brand.glass", color: "common.white", fontWeight: 600, fontSize: 13, height: 28, px: 0.5 };
 
@@ -52,7 +53,10 @@ const headerIconButtonSx = {
   "&:hover": { bgcolor: "brand.soft" },
 };
 
-const TripDetail = ({ trip }: { trip: Trip }) => {
+// Tabs with their own URL, so Back, refresh and links land on the same tab.
+export type TripTab = "overview" | "itinerary";
+
+const TripDetail = ({ trip, tab }: { trip: Trip; tab: TripTab }) => {
   const [shareOpen, setShareOpen] = useState(false);
   const days = tripLengthInDays(trip.startDate, trip.endDate);
   const length = `${days} ${days === 1 ? "day" : "days"}`;
@@ -125,37 +129,42 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
         </Box>
       </Box>
 
-      {/* Only Overview exists for now; the other tabs are placeholders for later phases. */}
-      <Tabs value="overview" aria-label="Trip sections" variant="scrollable" scrollButtons={false}>
-        <Tab value="overview" label="Overview" />
-        {["Itinerary", "Expenses", "Packing"].map((label) => (
+      {/* Each tab is a link; Expenses and Packing are placeholders for later steps. */}
+      <Tabs value={tab} aria-label="Trip sections" variant="scrollable" scrollButtons={false}>
+        <Tab value="overview" label="Overview" component={RouterLink} to={`/trips/${trip.tripId}`} />
+        <Tab value="itinerary" label="Itinerary" component={RouterLink} to={`/trips/${trip.tripId}/itinerary`} />
+        {["Expenses", "Packing"].map((label) => (
           <Tab key={label} value={label} disabled label={<span>{label} <Chip label="Soon" size="small" sx={{ height: 18, fontSize: 10, ml: 0.5 }} /></span>} />
         ))}
       </Tabs>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 280px" }, gap: 3, alignItems: "start" }}>
-        <Box sx={cardSx}>
-          <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700, mb: 1 }}>Trip details</Typography>
-          <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
-            <DetailRow emoji="🛫" label="From">{trip.source ?? "Not set"}</DetailRow>
-            <DetailRow emoji="📍" label="Destination">{trip.destination}</DetailRow>
-            <DetailRow emoji="📅" label="Dates">{formatDateRange(trip.startDate, trip.endDate)}</DetailRow>
-            <DetailRow emoji="⏱️" label="Length">{length}</DetailRow>
-            <DetailRow emoji="💰" label="Budget">{formatBudget(trip.budget, trip.currency)}</DetailRow>
-            <DetailRow emoji="👥" label="Travellers">{travellers ?? "Not set"}</DetailRow>
-            <DetailRow emoji="🏷️" label="Trip type">
-              {trip.tripTypes.length > 0 ? (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "flex-end" }}>
-                  {sortTripTypes(trip.tripTypes).map((type) => (
-                    <Chip key={type} label={tripTypeWithEmoji(type)} size="small" sx={{ bgcolor: "brand.soft", color: "primary.dark", fontWeight: 600 }} />
-                  ))}
-                </Box>
-              ) : (
-                "Not set"
-              )}
-            </DetailRow>
+        {tab === "itinerary" ? (
+          <ItineraryTimeline trip={trip} />
+        ) : (
+          <Box sx={cardSx}>
+            <Typography component="h2" sx={{ fontSize: 15, fontWeight: 700, mb: 1 }}>Trip details</Typography>
+            <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
+              <DetailRow emoji="🛫" label="From">{trip.source ?? "Not set"}</DetailRow>
+              <DetailRow emoji="📍" label="Destination">{trip.destination}</DetailRow>
+              <DetailRow emoji="📅" label="Dates">{formatDateRange(trip.startDate, trip.endDate)}</DetailRow>
+              <DetailRow emoji="⏱️" label="Length">{length}</DetailRow>
+              <DetailRow emoji="💰" label="Budget">{formatBudget(trip.budget, trip.currency)}</DetailRow>
+              <DetailRow emoji="👥" label="Travellers">{travellers ?? "Not set"}</DetailRow>
+              <DetailRow emoji="🏷️" label="Trip type">
+                {trip.tripTypes.length > 0 ? (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "flex-end" }}>
+                    {sortTripTypes(trip.tripTypes).map((type) => (
+                      <Chip key={type} label={tripTypeWithEmoji(type)} size="small" sx={{ bgcolor: "brand.soft", color: "primary.dark", fontWeight: 600 }} />
+                    ))}
+                  </Box>
+                ) : (
+                  "Not set"
+                )}
+              </DetailRow>
+            </Box>
           </Box>
-        </Box>
+        )}
 
         <TravellersCard trip={trip} />
       </Box>
@@ -166,7 +175,7 @@ const TripDetail = ({ trip }: { trip: Trip }) => {
   );
 };
 
-const TripDetailLoader = ({ tripId }: { tripId: number }) => {
+const TripDetailLoader = ({ tripId, tab }: { tripId: number; tab: TripTab }) => {
   const { data: trip, isPending, isError, error } = useTrip(tripId);
   if (isPending) {
     return (
@@ -177,12 +186,13 @@ const TripDetailLoader = ({ tripId }: { tripId: number }) => {
     );
   }
   if (isError) return <TripLoadError error={error} />;
-  return <TripDetail trip={trip} />;
+  return <TripDetail trip={trip} tab={tab} />;
 };
 
-const TripDetailPage = () => {
+// /trips/:tripId (Overview) and /trips/:tripId/itinerary share this page.
+const TripDetailPage = ({ tab = "overview" }: { tab?: TripTab }) => {
   const id = Number(useParams().tripId);
   if (!Number.isInteger(id)) return <TripLoadError error={new ApiError(404, "Not found")} />;
-  return <TripDetailLoader tripId={id} />;
+  return <TripDetailLoader tripId={id} tab={tab} />;
 };
 export default TripDetailPage;

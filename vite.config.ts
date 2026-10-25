@@ -5,7 +5,7 @@ import { mockApi } from './mock-api/mockApi'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
-  // `npm run dev:mock` (mode "mock") answers /api/users/* and /api/trip/* locally instead of proxying.
+  // `npm run dev:mock` (mode "mock") answers /api/users/*, /api/trip/* and /api/itineraries/* locally instead of proxying.
   plugins: [react(), mode === 'mock' && mockApi()],
   build: {
     rolldownOptions: {
