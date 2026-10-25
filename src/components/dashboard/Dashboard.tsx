@@ -5,6 +5,7 @@ import { greeting, tripsSummary } from "../../common/tripUtils";
 import { useAuth } from "../../context/useAuth";
 import { useTrips } from "../../services/tripQueries";
 import TripGrid from "../trips/TripGrid";
+import StatCards from "./StatCards";
 
 const Dashboard = () => {
   const auth = useAuth();
@@ -28,6 +29,9 @@ const Dashboard = () => {
           New trip
         </Button>
       </Box>
+
+      {/* Stats need the trip list; until it arrives the trip grid below shows its own loading state */}
+      {trips && trips.length > 0 && <StatCards trips={trips} />}
 
       <Box component="section" aria-labelledby="dashboard-trips" sx={{ display: "flex", flexDirection: "column", gap: 1.75 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>

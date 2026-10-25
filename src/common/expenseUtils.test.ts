@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ExpenseCategory } from "../services/expenseService";
-import { budgetUsage, expenseCategoryOption, spendingByCategory, totalSpent } from "./expenseUtils";
+import { budgetUsage, expenseCategoryOption, spendingByCategory, spentByCurrency, totalSpent } from "./expenseUtils";
 
 const expense = (amount: number, category: ExpenseCategory) => ({ amount, category });
 
@@ -42,5 +42,35 @@ describe("budgetUsage", () => {
 describe("expenseCategoryOption", () => {
   it("gives each category its label and emoji", () => {
     expect(expenseCategoryOption("HOTEL")).toMatchObject({ label: "Stay", emoji: "🏨" });
+  });
+});
+
+describe("spentByCurrency", () => {
+  const trips = [
+    { tripId: 1, currency: "EUR", budget: 2000 },
+    { tripId: 2, currency: "USD", budget: 3000 },
+    { tripId: 3, currency: "EUR", budget: null },
+    { tripId: 4, currency: "JPY", budget: 50000 },
+  ];
+  const expenses = new Map([
+    [1, [{ amount: 900 }, { amount: 100 }]],
+    [2, [{ amount: 600 }]],
+    [3, [{ amount: 500 }]],
+  ]);
+
+  it("totals each currency separately, never mixing them, biggest first", () => {
+    expect(spentByCurrency(trips, expenses)).toEqual([
+      { currency: "EUR", spent: 1500, budget: 2000, percent: 75 },
+      { currency: "USD", spent: 600, budget: 3000, percent: 20 },
+    ]);
+  });
+
+  it("leaves out the budgets of trips with nothing spent yet", () => {
+    const withUpcoming = [...trips, { tripId: 5, currency: "EUR", budget: 4000 }]; // no expenses
+    expect(spentByCurrency(withUpcoming, expenses)[0]).toEqual({ currency: "EUR", spent: 1500, budget: 2000, percent: 75 });
+  });
+
+  it("has no percentage when none of that currency's trips has a budget", () => {
+    expect(spentByCurrency([{ tripId: 3, currency: "EUR", budget: null }], expenses)).toEqual([{ currency: "EUR", spent: 500, budget: 0, percent: null }]);
   });
 });

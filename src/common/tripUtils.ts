@@ -194,6 +194,40 @@ export function tripsSummary(trips: Pick<Trip, "title" | "startDate" | "endDate"
   return `You have ${upcoming.length} upcoming trips. Next up: ${next.title}, which ${when}.`;
 }
 
+export type TripStats = {
+  total: number;
+  startingThisYear: number;
+  upcoming: number;
+  nextStartDate: string | null; // soonest upcoming trip's start
+  completed: number;
+  daysTravelled: number; // days of completed trips plus the days so far of ongoing ones
+};
+
+// Numbers for the dashboard's stat cards, computed from the trip list.
+export function tripStats(trips: Pick<Trip, "startDate" | "endDate">[], today = dayjs().format("YYYY-MM-DD")): TripStats {
+  const year = today.slice(0, 4);
+  const upcoming = trips.filter((trip) => getTripStatus(trip, today) === "upcoming").sort((a, b) => a.startDate.localeCompare(b.startDate));
+  let completed = 0;
+  let daysTravelled = 0;
+  for (const trip of trips) {
+    const status = getTripStatus(trip, today);
+    if (status === "completed") {
+      completed += 1;
+      daysTravelled += tripLengthInDays(trip.startDate, trip.endDate);
+    } else if (status === "ongoing") {
+      daysTravelled += tripLengthInDays(trip.startDate, today);
+    }
+  }
+  return {
+    total: trips.length,
+    startingThisYear: trips.filter((trip) => trip.startDate.startsWith(year)).length,
+    upcoming: upcoming.length,
+    nextStartDate: upcoming[0]?.startDate ?? null,
+    completed,
+    daysTravelled,
+  };
+}
+
 // Travellers is the trip's headcount; invites are the travellers who also use the app.
 // So the count can't be lower than you plus everyone invited (the backend checks too).
 export const MAX_TRAVELLERS = 50; // same limit as the backend

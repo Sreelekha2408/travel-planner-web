@@ -14,6 +14,7 @@ import {
   tripEmoji,
   tripLengthInDays,
   tripProgress,
+  tripStats,
   tripsSummary,
 } from "./tripUtils";
 
@@ -233,5 +234,27 @@ describe("tripsSummary", () => {
 
   it("nudges you when every trip is in the past", () => {
     expect(tripsSummary([tokyo], today)).toBe("No upcoming trips. Time to plan the next one?");
+  });
+});
+
+describe("tripStats", () => {
+  const trips = [
+    { startDate: "2026-10-16", endDate: "2026-10-23" }, // ongoing, day 3
+    { startDate: "2026-12-20", endDate: "2026-12-30" }, // upcoming
+    { startDate: "2026-11-01", endDate: "2026-11-05" }, // upcoming, sooner
+    { startDate: "2026-03-12", endDate: "2026-03-21" }, // completed, 10 days
+    { startDate: "2025-06-01", endDate: "2025-06-04" }, // completed last year, 4 days
+  ];
+
+  it("counts trips by status, this year's, and the next start date", () => {
+    expect(tripStats(trips, today)).toMatchObject({ total: 5, startingThisYear: 4, upcoming: 2, nextStartDate: "2026-11-01", completed: 2 });
+  });
+
+  it("adds up days of completed trips and the days so far of ongoing ones", () => {
+    expect(tripStats(trips, today).daysTravelled).toBe(10 + 4 + 3);
+  });
+
+  it("handles no trips", () => {
+    expect(tripStats([], today)).toEqual({ total: 0, startingThisYear: 0, upcoming: 0, nextStartDate: null, completed: 0, daysTravelled: 0 });
   });
 });
