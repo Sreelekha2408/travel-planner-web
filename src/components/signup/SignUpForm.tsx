@@ -6,6 +6,7 @@ import { EMAIL_PATTERN } from "../../common/tripUtils";
 import { useAuth } from "../../context/useAuth";
 import { signUp } from "../../services/authenticationService";
 import { ApiError } from "../../services/serviceWrapper";
+import PasswordField from "../common/PasswordField";
 import Logo from "../layout/Logo";
 import { authInputSx, authLabelSx, authSubmitSx } from "../signin/styles";
 
@@ -112,9 +113,8 @@ const SignUpForm = () => {
 
         <Box>
           <InputLabel htmlFor="signup-password" sx={authLabelSx}>Password</InputLabel>
-          <TextField
+          <PasswordField
             id="signup-password"
-            type="password"
             autoComplete="new-password" // tells password managers to suggest a new strong password
             placeholder="At least 8 characters"
             fullWidth

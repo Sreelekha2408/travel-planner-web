@@ -3,6 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Link as RouterLink } from "react-router-dom";
 import { EMAIL_PATTERN } from "../../common/tripUtils";
 import { useAuth } from "../../context/useAuth";
+import PasswordField from "../common/PasswordField";
 import Logo from "../layout/Logo";
 import { ApiError } from "../../services/serviceWrapper";
 import { authInputSx, authLabelSx, authSubmitSx } from "./styles";
@@ -74,9 +75,8 @@ const SignInForm = () => {
         <Box>
           {/* No length rule here: that belongs to sign-up. Older accounts may have shorter passwords. */}
           <InputLabel htmlFor="signin-password" sx={authLabelSx}>Password</InputLabel>
-          <TextField
+          <PasswordField
             id="signin-password"
-            type="password"
             autoComplete="current-password"
             placeholder="Enter your password"
             fullWidth
