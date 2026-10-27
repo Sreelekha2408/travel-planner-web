@@ -6,6 +6,10 @@ Spring Boot + PostgreSQL on the backend
 ([travel-planner-api](https://github.com/Sreelekha2408/travel-planner-api)), with cookie-based
 authentication.
 
+**Live demo: [sreelekha-travel-planner.vercel.app](https://sreelekha-travel-planner.vercel.app)**
+(create an account to try it). It runs on free hosting, so after a quiet spell the first request
+can take up to a minute while the server wakes up.
+
 > Built with React and Spring Boot; used Claude for code review, debugging and test generation.
 
 ## Screenshots
@@ -159,6 +163,17 @@ docs/            how cookie-based auth works (AUTH.md), screenshots
   `color: "text.secondary"` rather than hex values. Chart colours come from a palette checked for
   colour-blind readers.
 
+## Deployment
+
+| Part | Host | Notes |
+| ---- | ---- | ----- |
+| Frontend | Vercel | Builds on every push to `main`. [`vercel.json`](vercel.json) forwards `/api/*` to the API and serves `index.html` for every other path, so deep links like `/trips/2/expenses` survive a refresh. |
+| API | Render (Docker) | Free plan: sleeps after 15 minutes without traffic. |
+| Database | Neon (PostgreSQL) | Schema managed by the API's Liquibase migrations. |
+
+Because Vercel forwards `/api`, the browser only ever talks to one site, exactly as with the Vite
+proxy in development: the auth cookie stays same-site and no CORS setup is needed.
+
 ## Roadmap
 
 - [ ] Packing list
@@ -167,5 +182,4 @@ docs/            how cookie-based auth works (AUTH.md), screenshots
 - [ ] Google sign-in and "Forgot password"
 - [ ] Refresh tokens, so "Keep me signed in" doesn't rely on a long-lived JWT
 - [ ] Backend tests, end-to-end tests (e.g. Playwright) and CI
-- [ ] Deployment with the SPA and API on the same site
 - [ ] Mobile app (React Native) using `Authorization: Bearer` alongside the web app's cookies
